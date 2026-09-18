@@ -14,7 +14,9 @@ EdgePilot uses heavily optimized YOLOv8 architectures compiled directly for Neur
 
 ---
 
-## 1. Current Proof-of-Concept: Steel Defect Inspection (Phase 0–3)
+Two task-specific industrial vision models have been successfully compiled and profiled on a Snapdragon X Elite CRD NPU through Qualcomm AI Hub.
+
+## 1. Task A: Steel Defect Inspection (Phase 0–3)
 Our foundational proof-of-concept is an industrial steel surface-defect detection model.
 - **Dataset**: NEU-DET (6 classes: crazing, inclusion, patches, pitted_surface, rolled-in_scale, scratches)
 - **Model**: Custom YOLOv8-N
@@ -22,17 +24,22 @@ Our foundational proof-of-concept is an industrial steel surface-defect detectio
 - **Target Hardware**: Snapdragon X Elite CRD
 - **Runtime & Precision**: ONNX, FP16
 - **Compute Unit**: NPU / HTP
-- **Measured Latency**: **5.849 ms**
+- **Measured Latency**: 5.849 ms
 - **Memory Footprint**: ~4.73 MB
 
-*(Note: The Qualcomm NPU benchmark is a hosted AI Hub validation measurement, not local Mac NPU execution).*
-
-## 2. AutoML Architecture & Cross-Domain Validation (Phase 8–9)
+## 2. Task B: AutoML Cross-Domain Validation (Phase 8–9)
 To prove EdgePilot isn't hardcoded for a single task, we built a rigid **AutoMLEngine** (`app/core/automl_engine.py`) and validated it against a completely different industrial domain: **Printed Circuit Board (PCB) defects** (DeepPCB dataset).
 
 - **Objective**: Take a raw industrial dataset and autonomously train/export a YOLOv8-N model using a fixed template configuration.
 - **Validation**: The pipeline successfully trained a miniature 5-epoch proof-of-concept on a 50-image subset in under 60 seconds (local Mac) and exported the ONNX graph successfully. 
-- **Qualcomm Profiling Status for DeepPCB**: *Pending* (Validation focused on functional training pipeline, not production accuracy).
+- **Qualcomm AI Hub Validation**: VERIFIED
+- **Target Hardware**: Snapdragon X Elite CRD
+- **Runtime & Precision**: ONNX, FP16
+- **Compute Unit**: NPU / HTP
+- **Measured Latency**: 5.817 ms
+- **Memory Footprint**: 36.16 MB
+
+*(Note: The Qualcomm NPU benchmarks are hosted AI Hub validation measurements, not local Mac execution.)*
 
 ---
 

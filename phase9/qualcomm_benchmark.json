@@ -1,0 +1,24 @@
+{
+  "status": "success",
+  "model": {
+    "name": "EdgePilot DeepPCB YOLOv8-N",
+    "source": "AutoMLEngine"
+  },
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "os_version": "11"
+  },
+  "runtime": "onnx",
+  "precision": "fp16",
+  "compute_unit": "NPU",
+  "compile": {
+    "status": "success",
+    "job_id": "jgnzrv1qg"
+  },
+  "profile": {
+    "status": "success",
+    "job_id": "j5ql9q4op",
+    "latency_ms": 5.817,
+    "memory_mb": 36.15625
+  }
+}

@@ -28,6 +28,6 @@ This experiment was run as a constrained, lightweight MVP on a local Mac. It is 
 ## Export & Edge Deployment Status
 - **ONNX Export**: Success
 - **ONNX Model Size**: 11.70 MB
-- **Qualcomm Snapdragon Profiling**: Pending
+- **Qualcomm Snapdragon Profiling**: VERIFIED (5.817 ms Latency, 36.16 MB Memory)
 
-> **Disclaimer**: This DeepPCB model is a cross-domain AutoML proof-of-concept. It does not represent production PCB inspection capability. The only heavily verified EdgePilot deployment model remains the Phase 0–3 Steel Defect model (5.849 ms on Snapdragon X Elite NPU).
+> **Disclaimer**: This DeepPCB model is a cross-domain AutoML proof-of-concept. It does not represent production PCB inspection capability. The NPU latency profile validates the edge deployment capability.
