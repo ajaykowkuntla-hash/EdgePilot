@@ -1,0 +1,39 @@
+.env
+.env.*
+*.key
+*.pem
+*.token
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+phase0/.venv/
+runs/
+*.pt
+*.pth
+*.onnx
+*.bin
+*.cache
+*.log
+.DS_Store
+.ipynb_checkpoints/
+datasets/
+dataset/
+tmp/
+temp/
+
+# Excluded Datasets and Model Artifacts
+app/data/deeppcb_subset/images/
+app/data/deeppcb_subset/labels/
+coco8/
+coco8.zip
+yolov8n.pt
+
+# Ignore other potential secret or temporary files
+secrets/
+.secret
+*.json
+!phase0/benchmark.json
+
+# If we want to allow benchmark metadata but exclude credentials:
+# Make sure we don't commit credentials inside phase0/benchmark.json

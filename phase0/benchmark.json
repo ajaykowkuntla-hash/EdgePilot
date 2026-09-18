@@ -1,0 +1,41 @@
+{
+  "status": "success",
+  "model": {
+    "name": "yolov8_det",
+    "source": "Qualcomm AI Hub"
+  },
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "chipset": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "runtime": "onnx",
+  "precision": "FP16",
+  "compute_unit": "NPU",
+  "compile": {
+    "status": "success",
+    "job_id": "jgzljo465"
+  },
+  "profile": {
+    "status": "success",
+    "job_id": "j5wl321jp",
+    "latency_ms": 6.548,
+    "memory_mb": 4.75
+  },
+  "verification": {
+    "npu_confirmed": true,
+    "evidence": "Found NPU/HTP execution in backend: NPU"
+  }
+}
