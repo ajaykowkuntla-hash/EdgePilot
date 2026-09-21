@@ -11,7 +11,7 @@ def render():
     
     with col1:
         if st.button("Create AI Inspection", type="primary", use_container_width=True):
-            st.session_state['current_view'] = 'Create Inspection'
+            st.session_state['current_view'] = 'Create AI Inspection'
             st.rerun()
             
     with col2:

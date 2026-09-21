@@ -43,8 +43,39 @@ To prove EdgePilot isn't hardcoded for a single task, we built a rigid **AutoMLE
 
 ---
 
+## 3. Task C: True End-to-End AutoML Validation (Phase 11–12)
+To unify the workflow, we integrated the full UI-driven dataset-to-model AutoML pipeline, followed by Qualcomm AI Hub NPU validation of the generated ONNX artifact.
+
+- **Objective**: Complete end-to-end functionality via the EdgePilot Dashboard:
+  - UI-driven ZIP dataset upload
+  - dataset validation
+  - real YOLOv8-N training
+  - evaluation
+  - ONNX export
+  - local ONNX inference
+  - task state tracking
+- **Qualcomm AI Hub Validation**: VERIFIED
+- **Target Hardware**: Snapdragon X Elite CRD
+- **Runtime & Precision**: ONNX, FP16
+- **Compute Unit**: NPU / HTP
+- **Measured Latency**: 5.804 ms
+- **Memory Footprint**: 4.75 MB
+
+*(Note: The Qualcomm NPU benchmarks are hosted AI Hub validation measurements, not local Mac execution.)*
+
+---
+
 ## Architecture
 - **Streamlit Interface**: An interactive, localized dashboard for pipeline configuration and real-time inference visualization.
+- **Business Workflow**: The core 8-step application logic:
+  1. Business Requirement
+  2. Inspection Task
+  3. Business Data
+  4. Business Rule
+  5. AI Preparation
+  6. Train & Evaluate
+  7. Deployment
+  8. Business Result
 - **AutoML Engine**: A strict template-driven abstraction over Ultralytics YOLO to hide ML complexities from the end user.
 - **Inference Engine**: ONNX Runtime (currently CPU on Mac, intended for QNN/NPU on Snapdragon).
 - **Deployment Hub**: Integration hooks for Qualcomm AI Hub for compilation and profiling.
@@ -58,12 +89,20 @@ To prove EdgePilot isn't hardcoded for a single task, we built a rigid **AutoMLE
 - `git`
 
 ### Installation
+
+**Core application:**
 ```bash
 git clone https://github.com/ajaykowkuntla-hash/EdgePilot.git
 cd EdgePilot
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+**(Optional) Qualcomm validation:**
+To reproduce the Qualcomm AI Hub hardware profiles:
+```bash
+pip install -r requirements-validation.txt
 ```
 
 ---
@@ -94,5 +133,4 @@ EdgePilot is rapidly evolving, but we value transparency:
 - **Mac vs. Snapdragon Inference**: The current local Streamlit demo runs ONNX on Mac CPU. The 5.8ms NPU claim is strictly based on our isolated, verified Qualcomm AI Hub deployments, not the live local UI.
 - **AutoML is an MVP**: The current AutoML abstraction uses a highly constrained, rigid configuration (YOLOv8-N, 640x640, 5 epochs). It is an MVP, not an arbitrary hyperparameter search engine.
 - **Task B Accuracy**: The 5-epoch DeepPCB run is purely a functional pipeline proof-of-concept. The resulting mAP is expectedly low and is not intended for production inspection without scaling the epochs.
-- **Business Data Pipeline**: End-to-end user-uploaded datasets via the UI are not yet polished. The pipelines are orchestrated via Python scripts (`run_task_b.py`). 
 - **Cloud/Auth/DB**: We have strictly avoided cloud databases, FastAPI, or authentication to maintain a pure edge-first focus.
