@@ -1,0 +1,25 @@
+{
+  "comparison": {
+    "device": "Snapdragon X Elite CRD",
+    "runtime": "onnx",
+    "precision": "FP16",
+    "compute_unit": "NPU",
+    "baseline_phase0": {
+      "model": "Official Qualcomm YOLOv8-N",
+      "latency_ms": 6.548,
+      "memory_mb": 4.75,
+      "npu_confirmed": true
+    },
+    "custom_phase3": {
+      "model": "Custom EdgePilot YOLOv8-N (NEU-DET)",
+      "latency_ms": 5.849,
+      "memory_mb": 4.7265625,
+      "npu_confirmed": true
+    },
+    "delta": {
+      "latency_change_ms": -0.699,
+      "memory_change_mb": -0.0234375,
+      "conclusion": "Custom model successfully executed on NPU via ONNX. Performance is slightly better than the official Qualcomm model, likely due to optimization by onnxslim and removing duplicate IO/value_info tensors during export."
+    }
+  }
+}

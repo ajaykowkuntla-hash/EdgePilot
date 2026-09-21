@@ -1,0 +1,6 @@
+{
+  "model": "yolov8_det",
+  "input_spec": {
+    "image": "(1, 3, 640, 640)"
+  }
+}

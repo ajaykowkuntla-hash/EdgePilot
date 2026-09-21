@@ -1,0 +1,44 @@
+{
+  "status": "success",
+  "model": {
+    "name": "EdgePilot Custom YOLOv8-N",
+    "source": "Custom Training (Phase 2)",
+    "dataset": "NEU-DET",
+    "parameters": 3012018,
+    "size_mb": 11.7
+  },
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "chipset": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "runtime": "onnx",
+  "precision": "FP16",
+  "compute_unit": "NPU",
+  "compile": {
+    "status": "success",
+    "job_id": "jgzlj7qk5"
+  },
+  "profile": {
+    "status": "success",
+    "job_id": "jg9zy4rlp",
+    "latency_ms": 5.849,
+    "memory_mb": 4.7265625
+  },
+  "verification": {
+    "npu_confirmed": true,
+    "evidence": "Found NPU/HTP execution in backend: NPU"
+  }
+}

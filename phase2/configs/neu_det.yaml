@@ -1,0 +1,7 @@
+path: /Users/ajaykowkuntla/Desktop/New Pro/phase2/dataset
+train: train/images
+val: test/images
+test: test/images
+
+nc: 6
+names: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled-in_scale', 'scratches']

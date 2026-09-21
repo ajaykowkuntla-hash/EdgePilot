@@ -32,8 +32,6 @@ yolov8n.pt
 # Ignore other potential secret or temporary files
 secrets/
 .secret
-*.json
-!phase0/benchmark.json
-
+app/config/tasks.json
 # If we want to allow benchmark metadata but exclude credentials:
 # Make sure we don't commit credentials inside phase0/benchmark.json
