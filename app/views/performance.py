@@ -1,39 +1,58 @@
 import streamlit as st
+from app.ui.components import page_header, section_header, evidence_card
 
 def render():
-    st.title("Performance Validation")
-    st.markdown("---")
+    page_header(
+        eyebrow="PERFORMANCE",
+        title="Hardware Validation",
+        subtitle="Qualcomm AI Hub Profiling",
+        description="EdgePilot compiles and profiles ONNX models against the Snapdragon X Elite NPU."
+    )
 
-    st.markdown("### LOCAL DEVELOPMENT")
-    st.warning("**LOCAL DEMO:** The Inference page in this application runs on **Mac / PyTorch / CPU** for demonstration purposes. It does not reflect Snapdragon NPU performance.")
+    st.markdown("""
+        <div class="ep-card" style="border-left: 4px solid var(--ep-warning); margin-bottom: 2rem;">
+            <div style="font-weight: bold; color: var(--ep-text);">LOCAL DEMO</div>
+            <div style="color: var(--ep-muted); font-size: 0.9rem;">The Live Inference page in this application runs on Mac / CPU for demonstration purposes. It does not reflect the NPU performance shown below.</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("### QUALCOMM HOSTED VALIDATION")
-    st.markdown("Models were successfully compiled and profiled on **Snapdragon X Elite** through Qualcomm AI Hub.")
+    section_header("Current Validation")
 
-    st.info("**DEPLOYMENT VALIDATION:** Snapdragon X Elite / Qualcomm AI Hub / NPU")
+    evidence_card(
+        title="Phase 12 Pipeline",
+        hardware="Snapdragon X Elite CRD",
+        runtime="ONNX",
+        compute="NPU",
+        latency="5.804 ms",
+        memory="4.75 MB"
+    )
 
-    st.subheader("Current Phase 12 Model")
-    colA, colB = st.columns(2)
-    with colA:
-        st.metric("Latency", "5.804 ms")
-        st.metric("Memory", "4.75 MB")
-    with colB:
-        st.write("Target: Snapdragon X Elite CRD")
-        st.write("Runtime: ONNX")
-        st.write("Precision: FP16")
-        st.write("Compute Unit: NPU")
+    st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.subheader("Historical Validations")
+    section_header("Historical Validations")
+
+    st.markdown("<div style='color: var(--ep-muted); margin-bottom: 1rem;'>Neutral evidence of task-specific models compiled via EdgePilot and profiled on Qualcomm AI Hub.</div>", unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("**NEU-DET (Task A)**")
-        st.metric("Latency", "5.849 ms")
-        st.metric("Memory", "4.73 MB")
+        evidence_card(
+            title="NEU-DET (Task A)",
+            hardware="Snapdragon X Elite CRD",
+            runtime="ONNX",
+            compute="NPU",
+            latency="5.849 ms",
+            memory="~4.73 MB"
+        )
 
     with col2:
-        st.markdown("**DeepPCB (Task B)**")
-        st.metric("Latency", "5.817 ms")
-        st.metric("Memory", "36.16 MB")
+        evidence_card(
+            title="DeepPCB (Task B)",
+            hardware="Snapdragon X Elite CRD",
+            runtime="ONNX",
+            compute="NPU",
+            latency="5.817 ms",
+            memory="36.16 MB"
+        )
+
+    st.markdown("<div style='margin-bottom: 4rem;'></div>", unsafe_allow_html=True)

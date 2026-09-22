@@ -2,85 +2,79 @@ import streamlit as st
 import os
 from app.utils.inference import run_inference
 from app.core.decision_engine import evaluate_inspection
+from app.ui.components import page_header
 
 def render():
-    st.title("Inference & Decision")
+    page_header(
+        eyebrow="LIVE INSPECTION",
+        title="Industrial Console",
+        subtitle="LOCAL ONNX INFERENCE",
+        description="Proof-of-concept validation prototype."
+    )
 
     config = st.session_state.get('inspection_config', {
         "name": "Surface Defect Check",
         "threshold": 0.70,
-        "decision": "Reject defective product"
+        "decision": "Reject Product"
     })
 
-    st.info("**Workflow:** Upload Image → AI Detection → Detection Overlay → Confidence → Business Decision")
-    st.markdown(f"**Active Task:** {config['name']}")
-
-    st.caption("Proof-of-concept / validation prototype.")
-
-    confidence_threshold = st.slider(
-        "Confidence Threshold Override",
-        min_value=0.0, max_value=1.0,
-        value=config['threshold'],
-        step=0.05
-    )
-
-    st.markdown("### Verified Demo")
-    col_demo1, col_demo2, col_demo3 = st.columns([1, 1, 2])
-
-    demo_image_path = None
-    with col_demo1:
-        if st.button("Test: Pitted Surface", use_container_width=True):
-            demo_image_path = "phase2/dataset/test/images/pitted_surface_277.jpg"
-    with col_demo2:
-        if st.button("Test: Patches", use_container_width=True):
-            demo_image_path = "phase2/dataset/test/images/patches_277.jpg"
-
-    st.markdown("### Upload Custom Image")
-    uploaded_file = st.file_uploader("Upload Inspection Image", type=['jpg', 'jpeg', 'png'])
-
+    demo_image_path = "phase2/dataset/test/images/pitted_surface_277.jpg"
     image_bytes = None
-    if demo_image_path and os.path.exists(demo_image_path):
-        st.success(f"Using Verified NEU-DET Test Image: {os.path.basename(demo_image_path)}")
+    if os.path.exists(demo_image_path):
         with open(demo_image_path, "rb") as f:
             image_bytes = f.read()
-    elif uploaded_file is not None:
-        image_bytes = uploaded_file.read()
 
-    if image_bytes is not None:
-        with st.spinner("Running local inference..."):
-            result = run_inference(image_bytes, confidence_threshold)
+    col_left, col_right = st.columns([2, 1])
 
-        if "error" in result:
-            st.error(result["error"])
-            return
+    with col_left:
+        st.markdown("""
+            <div class="ep-card" style="padding: 0.5rem; border-color: var(--ep-accent); min-height: 400px; display: flex; flex-direction: column;">
+                <div class="ep-card-header" style="margin: 0.5rem 1rem;">CAMERA FEED / UPLOAD</div>
+        """, unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.subheader("Inference Results")
-        st.caption("Local deployment inference — ONNX Runtime on Mac")
-        st.caption("Snapdragon NPU deployment is validated separately through Qualcomm AI Hub profiling.")
+        uploaded_file = st.file_uploader("Upload Inspection Image", type=['jpg', 'jpeg', 'png'], label_visibility="collapsed")
+        if uploaded_file is not None:
+            image_bytes = uploaded_file.read()
 
-        col1, col2 = st.columns(2)
+        if image_bytes:
+            with st.spinner("Running inference..."):
+                result = run_inference(image_bytes, config['threshold'])
 
-        with col1:
-            st.image(result['annotated_image'], caption="AI Detection Overlay", use_container_width=True)
-            st.markdown(f"**Local Mac inference:** ~{result['inference_time']:.1f} ms")
-
-        with col2:
-            decision, details = evaluate_inspection(result['detections'], confidence_threshold, config['decision'])
-
-            st.markdown("### Business Decision")
-            if decision == "PASS":
-                st.success(f"**Decision: {decision}**\n\n{details}")
-            elif decision == "REJECT":
-                st.error(f"**Decision: {decision}**\n\n{details}")
+            if "error" not in result:
+                st.image(result['annotated_image'], use_container_width=True)
             else:
-                st.warning(f"**Decision: {decision}**\n\n{details}")
+                st.error(result["error"])
 
-            st.markdown("### Detections")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_right:
+        if image_bytes and "error" not in result:
+            decision, details = evaluate_inspection(result['detections'], config['threshold'], config['decision'])
+
+            st.markdown('<div class="ep-card" style="height: 100%;">', unsafe_allow_html=True)
+            st.markdown('<div class="ep-card-header">INSPECTION RESULT</div>', unsafe_allow_html=True)
+
             if result['detections']:
-                st.error("**DEFECT DETECTED**")
-                for idx, d in enumerate(result['detections']):
-                    st.markdown(f"**{d['class']}**")
-                    st.markdown(f"Confidence: {int(d['confidence']*100)}%")
+                d = result['detections'][0]
+                label = d['class'].replace('_', ' ').title()
+                conf = int(d['confidence']*100)
+                count = len(result['detections'])
+
+                st.markdown(f'<div style="font-size: 1.5rem; font-weight: bold; color: var(--ep-danger); margin-top: 1rem;">{label}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color: var(--ep-text); margin-top: 0.25rem;">{conf}% confidence</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color: var(--ep-muted); margin-top: 0.25rem;">{count} defect(s) detected</div>', unsafe_allow_html=True)
             else:
-                st.success("**NO DEFECTS DETECTED**")
+                st.markdown('<div style="font-size: 1.5rem; font-weight: bold; color: var(--ep-success); margin-top: 1rem;">No Defects</div>', unsafe_allow_html=True)
+
+            st.markdown('<hr style="margin: 1.5rem 0;" />', unsafe_allow_html=True)
+
+            st.markdown('<div class="ep-card-header">BUSINESS DECISION</div>', unsafe_allow_html=True)
+            if decision == "REJECT":
+                st.markdown(f'<div style="font-size: 2.5rem; font-weight: 800; color: var(--ep-danger); text-align: center; margin-top: 1rem; border: 2px solid var(--ep-danger); padding: 1rem; border-radius: 6px;">{decision}</div>', unsafe_allow_html=True)
+            elif decision == "ALERT":
+                st.markdown(f'<div style="font-size: 2.5rem; font-weight: 800; color: var(--ep-warning); text-align: center; margin-top: 1rem; border: 2px solid var(--ep-warning); padding: 1rem; border-radius: 6px;">{decision}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div style="font-size: 2.5rem; font-weight: 800; color: var(--ep-success); text-align: center; margin-top: 1rem; border: 2px solid var(--ep-success); padding: 1rem; border-radius: 6px;">{decision}</div>', unsafe_allow_html=True)
+
+            st.markdown(f'<div style="color: var(--ep-muted); font-size: 0.8rem; text-align: center; margin-top: 1rem;">Latency: {result["inference_time"]:.1f} ms</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
