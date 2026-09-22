@@ -1,100 +1,47 @@
 import streamlit as st
-from app.ui.components import page_header, pipeline_visual, evidence_card, feature_card, task_card, section_header, workflow_wizard
+from app.ui.components import metric_card, section_header
 
 def render():
-    page_header(
-        eyebrow="EDGE AI AUTOMATION PLATFORM",
-        title="EdgePilot",
-        subtitle="AI Automation, Built for the Edge.",
-        description="Turn repetitive visual inspection requirements into task-specific edge-AI workflows."
-    )
+    st.markdown("""
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin: 0; padding: 0; color: var(--ep-text);">Good morning</h1>
+            <p style="color: var(--ep-muted); font-size: 1.1rem; margin-top: 0.5rem;">Here's today's inspection summary.</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1.5, 1.5, 7])
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        if st.button("＋ Create AI Inspection", type="primary", use_container_width=True):
-            st.session_state['current_view'] = '＋ Create Inspection'
+        metric_card("ITEMS INSPECTED", "0")
+    with col2:
+        metric_card("PASSED", "0")
+    with col3:
+        metric_card("ISSUES FOUND", "0")
+    with col4:
+        metric_card("AVG PROCESSING TIME", "0.0 sec")
+
+    st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+    
+    col_cta1, col_cta2, col_cta3 = st.columns([1, 1, 2])
+    with col_cta1:
+        if st.button("＋ Start Inspection", type="primary", use_container_width=True):
+            st.session_state['current_view'] = 'Inspections'
             st.session_state['wizard_step'] = 1
             st.rerun()
-    with col2:
-        if st.button("View Validated Tasks", type="secondary", use_container_width=True):
-            st.session_state['current_view'] = '▣ Validated Tasks'
-            st.rerun()
 
     st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
 
-    # HERO PIPELINE
-    pipeline_visual()
-
-    st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
-
-    # QUALCOMM VALIDATION
-    evidence_card(
-        title="QUALCOMM AI HUB VALIDATION",
-        hardware="Snapdragon X Elite CRD",
-        runtime="ONNX",
-        compute="NPU",
-        latency="5.804 ms",
-        memory="4.75 MB"
-    )
-
-    st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
-
-    # VALUE PROPOSITION
-    col_feat1, col_feat2, col_feat3 = st.columns(3)
-    with col_feat1:
-        feature_card(
-            number="01",
-            title="BUSINESS-FIRST CONFIGURATION",
-            description="Configure inspections in business language."
-        )
-    with col_feat2:
-        feature_card(
-            number="02",
-            title="AUTOMATED AI PIPELINE",
-            description="Data → Training → Evaluation → ONNX."
-        )
-    with col_feat3:
-        feature_card(
-            number="03",
-            title="EDGE DEPLOYMENT",
-            description="Validate task-specific models for Snapdragon NPU deployment."
-        )
-
-    st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
-
-    # WORKFLOW
-    section_header("Business Workflow")
-    workflow_wizard(current_step=9) # Passed 8 so all show completed/neutral
-
-    st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
-
-    # VALIDATED TASKS
-    section_header("Validated Tasks")
-    tc1, tc2 = st.columns(2)
-    with tc1:
-        task_card(
-            title="STEEL SURFACE INSPECTION",
-            domain="NEU-DET",
-            model="YOLOv8-N",
-            deployment="ONNX",
-            badge_text="NPU VALIDATED"
-        )
-        if st.button("View Steel Inspection Details", key="btn_steel", use_container_width=True):
-            st.session_state['selected_existing_task'] = 'steel'
-            st.session_state['current_view'] = 'Task Detail'
-            st.rerun()
-
-    with tc2:
-        task_card(
-            title="PCB DEFECT INSPECTION",
-            domain="DeepPCB",
-            model="YOLOv8-N",
-            deployment="ONNX",
-            badge_text="NPU VALIDATED"
-        )
-        if st.button("View PCB Inspection Details", key="btn_pcb", use_container_width=True):
-            st.session_state['selected_existing_task'] = 'pcb'
-            st.session_state['current_view'] = 'Task Detail'
-            st.rerun()
-
-    st.markdown("<div style='margin-bottom: 4rem;'></div>", unsafe_allow_html=True)
+    section_header("Recent Activity")
+    
+    st.markdown("""
+        <div class="ep-card" style="text-align: center; padding: 4rem 2rem;">
+            <div style="color: var(--ep-muted); margin-bottom: 1rem;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+            </div>
+            <h3 style="margin: 0; color: var(--ep-text); font-weight: 600;">NO INSPECTIONS YET</h3>
+            <p style="color: var(--ep-muted); margin-top: 0.5rem;">Your completed inspections will appear here.</p>
+        </div>
+    """, unsafe_allow_html=True)

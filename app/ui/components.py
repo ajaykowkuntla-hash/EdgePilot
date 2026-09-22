@@ -25,8 +25,9 @@ def metric_card(label, value):
     html = f'<div class="ep-card" style="text-align: center;"><div class="ep-card-header">{label}</div><div style="font-size: 1.5rem; font-weight: bold; color: var(--ep-text); margin-top: 0.5rem;">{value}</div></div>'
     st.markdown(html, unsafe_allow_html=True)
 
-def workflow_wizard(current_step):
-    steps = ["Req", "Task", "Data", "Rule", "AI", "Train", "ONNX", "Ready"]
+def workflow_wizard(current_step, steps=None):
+    if steps is None:
+        steps = ["Configure", "Provide Data", "Process"]
     html = '<div style="display: flex; align-items: center; justify-content: space-between; margin: 2rem 0; padding: 1rem; background-color: var(--ep-surface-2); border-radius: 6px;">'
     for i, step in enumerate(steps):
         step_num = i + 1

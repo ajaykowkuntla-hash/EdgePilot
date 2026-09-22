@@ -1,0 +1,11 @@
+{
+    "templates": {
+        "yolov8n_object_detection": {
+            "base_model": "yolov8n.pt",
+            "framework": "ultralytics",
+            "supported_export": [
+                "onnx"
+            ]
+        }
+    }
+}

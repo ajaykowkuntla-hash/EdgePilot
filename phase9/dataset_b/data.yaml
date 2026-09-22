@@ -1,0 +1,9 @@
+
+path: /Users/ajaykowkuntla/Desktop/New Pro/phase9/dataset_b
+train: images/train
+val: images/val
+
+names:
+  0: Free
+  1: Cap
+  2: Crumbled

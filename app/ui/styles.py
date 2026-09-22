@@ -4,16 +4,20 @@ def apply_global_styles():
     st.markdown("""
         <style>
             :root {
-                --ep-bg: #0B0F14;
-                --ep-surface: #111820;
-                --ep-surface-2: #161F29;
-                --ep-border: #26313D;
-                --ep-text: #F4F7FA;
-                --ep-muted: #8B98A7;
-                --ep-accent: #00E5FF;
-                --ep-success: #00E676;
-                --ep-warning: #FFC400;
-                --ep-danger: #FF1744;
+                /* Light theme minimalist palette */
+                --ep-bg: #F8FAFC;
+                --ep-surface: #FFFFFF;
+                --ep-surface-2: #F1F5F9;
+                --ep-border: #E2E8F0;
+                --ep-text: #0F172A;
+                --ep-muted: #64748B;
+                
+                /* Accent colors */
+                --ep-accent: #0284C7; /* Restrained blue */
+                --ep-accent-hover: #0369A1;
+                --ep-success: #10B981;
+                --ep-warning: #F59E0B;
+                --ep-danger: #EF4444;
                 
                 --ep-font: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
                 --ep-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -59,52 +63,53 @@ def apply_global_styles():
             .main .block-container {
                 padding-top: 2rem !important;
                 padding-bottom: 2rem !important;
-                max-width: 1440px !important;
-            }
-            
-            /* Overriding default metric */
-            div[data-testid="stMetricValue"] {
-                font-family: var(--ep-mono);
+                max-width: 1200px !important;
             }
             
             /* Buttons */
             div.stButton > button:first-child {
-                background-color: var(--ep-surface-2);
+                background-color: var(--ep-surface);
                 color: var(--ep-text);
                 border: 1px solid var(--ep-border);
-                border-radius: 4px;
+                border-radius: 8px;
                 padding: 0.5rem 1rem;
                 font-family: var(--ep-font);
                 font-weight: 500;
                 transition: all 0.2s ease-in-out;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             }
             
             div.stButton > button:first-child:hover {
-                border-color: var(--ep-accent);
-                color: var(--ep-accent);
+                border-color: var(--ep-muted);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             }
             
             /* Primary Button */
             div.stButton > button[kind="primary"] {
                 background-color: var(--ep-accent);
-                color: #000000;
+                color: #FFFFFF;
                 border: 1px solid var(--ep-accent);
+                box-shadow: 0 1px 3px rgba(2, 132, 199, 0.3);
+            }
+            
+            div.stButton > button[kind="primary"] p {
+                color: #FFFFFF;
             }
             
             div.stButton > button[kind="primary"]:hover {
-                background-color: #00B8CC;
-                border-color: #00B8CC;
-                color: #000000;
+                background-color: var(--ep-accent-hover);
+                border-color: var(--ep-accent-hover);
             }
             
             /* Input fields */
             .stTextInput > div > div > input, 
             .stTextArea > div > div > textarea, 
             .stSelectbox > div > div > div {
-                background-color: var(--ep-surface-2) !important;
+                background-color: var(--ep-surface) !important;
                 color: var(--ep-text) !important;
                 border: 1px solid var(--ep-border) !important;
-                border-radius: 4px !important;
+                border-radius: 8px !important;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
             }
             
             .stTextInput > div > div > input:focus, 
@@ -118,7 +123,8 @@ def apply_global_styles():
             .stFileUploader > div > div {
                 background-color: var(--ep-surface-2);
                 border: 1px dashed var(--ep-border);
-                border-radius: 8px;
+                border-radius: 12px;
+                padding: 2rem;
             }
             .stFileUploader > div > div:hover {
                 border-color: var(--ep-accent);
@@ -126,10 +132,11 @@ def apply_global_styles():
             
             /* Remove standard st info/warning/success/error backgrounds to replace with industrial look */
             div[data-testid="stAlert"] {
-                background-color: var(--ep-surface-2);
+                background-color: var(--ep-surface);
                 border: 1px solid var(--ep-border);
                 color: var(--ep-text);
-                border-radius: 4px;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             }
             
             /* Industrial styling for success/error/warning alerts */
@@ -145,51 +152,54 @@ def apply_global_styles():
             
             /* Clean up Expander */
             .streamlit-expanderHeader {
-                background-color: var(--ep-surface-2) !important;
+                background-color: var(--ep-surface) !important;
                 color: var(--ep-text) !important;
                 border: 1px solid var(--ep-border) !important;
-                border-radius: 4px !important;
+                border-radius: 8px !important;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
             }
             
-            /* Generic Card Class to be used with st.markdown */
+            /* Generic Card Class */
             .ep-card {
                 background-color: var(--ep-surface);
                 border: 1px solid var(--ep-border);
-                border-radius: 6px;
+                border-radius: 12px;
                 padding: 1.5rem;
                 margin-bottom: 1rem;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             }
             
             .ep-card-header {
-                font-size: 0.75rem;
+                font-size: 0.8rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 color: var(--ep-muted);
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.75rem;
                 font-weight: 600;
             }
             
             .ep-metric-value {
-                font-family: var(--ep-mono);
-                font-size: 2rem;
-                font-weight: 400;
+                font-family: var(--ep-font);
+                font-size: 2.5rem;
+                font-weight: 600;
                 color: var(--ep-text);
+                line-height: 1.1;
             }
             
             .ep-badge {
                 display: inline-block;
-                padding: 0.25rem 0.5rem;
+                padding: 0.25rem 0.75rem;
                 font-size: 0.75rem;
                 font-weight: 600;
-                border-radius: 4px;
+                border-radius: 9999px; /* Pill shape */
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
             }
             
-            .ep-badge.success { background-color: rgba(0, 230, 118, 0.1); color: var(--ep-success); border: 1px solid rgba(0, 230, 118, 0.2); }
-            .ep-badge.warning { background-color: rgba(255, 196, 0, 0.1); color: var(--ep-warning); border: 1px solid rgba(255, 196, 0, 0.2); }
-            .ep-badge.danger { background-color: rgba(255, 23, 68, 0.1); color: var(--ep-danger); border: 1px solid rgba(255, 23, 68, 0.2); }
-            .ep-badge.neutral { background-color: rgba(139, 152, 167, 0.1); color: var(--ep-muted); border: 1px solid rgba(139, 152, 167, 0.2); }
+            .ep-badge.success { background-color: rgba(16, 185, 129, 0.1); color: var(--ep-success); border: 1px solid rgba(16, 185, 129, 0.2); }
+            .ep-badge.warning { background-color: rgba(245, 158, 11, 0.1); color: var(--ep-warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+            .ep-badge.danger { background-color: rgba(239, 68, 68, 0.1); color: var(--ep-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+            .ep-badge.neutral { background-color: var(--ep-surface-2); color: var(--ep-muted); border: 1px solid var(--ep-border); }
             
             /* Custom HR */
             hr {
@@ -205,25 +215,25 @@ def apply_global_styles():
             }
             
             div.row-widget.stRadio > div > label {
-                background-color: var(--ep-surface-2);
+                background-color: var(--ep-surface);
                 border: 1px solid var(--ep-border);
-                border-radius: 6px;
+                border-radius: 12px;
                 padding: 1.5rem;
                 flex: 1;
                 min-width: 200px;
                 cursor: pointer;
                 transition: all 0.2s ease;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             }
             
             div.row-widget.stRadio > div > label:hover {
-                border-color: var(--ep-muted);
+                border-color: var(--ep-accent);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             }
             
             div.row-widget.stRadio > div > label[data-baseweb="radio"] > div:first-child {
                 display: none; /* Hide the actual radio circle */
             }
-            
-            /* Workaround for selected radio state using Streamlit's aria-checked attribute if possible, otherwise rely on st.radio functionality */
 
             /* Wizard Step Bar */
             .ep-wizard {
@@ -233,23 +243,25 @@ def apply_global_styles():
                 padding: 1rem;
                 background-color: var(--ep-surface);
                 border: 1px solid var(--ep-border);
-                border-radius: 6px;
+                border-radius: 12px;
                 margin-bottom: 2rem;
                 overflow-x: auto;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             }
             
             .ep-step {
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
-                font-size: 0.85rem;
+                font-size: 0.9rem;
                 font-weight: 500;
                 color: var(--ep-muted);
                 white-space: nowrap;
             }
             
             .ep-step.active {
-                color: var(--ep-accent);
+                color: var(--ep-text);
+                font-weight: 600;
             }
             
             .ep-step.completed {

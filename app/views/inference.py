@@ -6,10 +6,9 @@ from app.ui.components import page_header
 
 def render():
     page_header(
-        eyebrow="LIVE INSPECTION",
-        title="Industrial Console",
-        subtitle="LOCAL ONNX INFERENCE",
-        description="Proof-of-concept validation prototype."
+        eyebrow="INSPECTION",
+        title="Live Feed",
+        description="Real-time automated inspection."
     )
 
     config = st.session_state.get('inspection_config', {
@@ -32,12 +31,12 @@ def render():
                 <div class="ep-card-header" style="margin: 0.5rem 1rem;">CAMERA FEED / UPLOAD</div>
         """, unsafe_allow_html=True)
 
-        uploaded_file = st.file_uploader("Upload Inspection Image", type=['jpg', 'jpeg', 'png'], label_visibility="collapsed")
+        uploaded_file = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png'], label_visibility="collapsed")
         if uploaded_file is not None:
             image_bytes = uploaded_file.read()
 
         if image_bytes:
-            with st.spinner("Running inference..."):
+            with st.spinner("Analyzing..."):
                 result = run_inference(image_bytes, config['threshold'])
 
             if "error" not in result:
@@ -52,23 +51,21 @@ def render():
             decision, details = evaluate_inspection(result['detections'], config['threshold'], config['decision'])
 
             st.markdown('<div class="ep-card" style="height: 100%;">', unsafe_allow_html=True)
-            st.markdown('<div class="ep-card-header">INSPECTION RESULT</div>', unsafe_allow_html=True)
+            st.markdown('<div class="ep-card-header">RESULT</div>', unsafe_allow_html=True)
 
             if result['detections']:
                 d = result['detections'][0]
                 label = d['class'].replace('_', ' ').title()
-                conf = int(d['confidence']*100)
                 count = len(result['detections'])
 
                 st.markdown(f'<div style="font-size: 1.5rem; font-weight: bold; color: var(--ep-danger); margin-top: 1rem;">{label}</div>', unsafe_allow_html=True)
-                st.markdown(f'<div style="color: var(--ep-text); margin-top: 0.25rem;">{conf}% confidence</div>', unsafe_allow_html=True)
-                st.markdown(f'<div style="color: var(--ep-muted); margin-top: 0.25rem;">{count} defect(s) detected</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color: var(--ep-muted); margin-top: 0.25rem;">{count} issue(s) detected</div>', unsafe_allow_html=True)
             else:
-                st.markdown('<div style="font-size: 1.5rem; font-weight: bold; color: var(--ep-success); margin-top: 1rem;">No Defects</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size: 1.5rem; font-weight: bold; color: var(--ep-success); margin-top: 1rem;">Pass</div>', unsafe_allow_html=True)
 
             st.markdown('<hr style="margin: 1.5rem 0;" />', unsafe_allow_html=True)
 
-            st.markdown('<div class="ep-card-header">BUSINESS DECISION</div>', unsafe_allow_html=True)
+            st.markdown('<div class="ep-card-header">ACTION</div>', unsafe_allow_html=True)
             if decision == "REJECT":
                 st.markdown(f'<div style="font-size: 2.5rem; font-weight: 800; color: var(--ep-danger); text-align: center; margin-top: 1rem; border: 2px solid var(--ep-danger); padding: 1rem; border-radius: 6px;">{decision}</div>', unsafe_allow_html=True)
             elif decision == "ALERT":
@@ -76,5 +73,14 @@ def render():
             else:
                 st.markdown(f'<div style="font-size: 2.5rem; font-weight: 800; color: var(--ep-success); text-align: center; margin-top: 1rem; border: 2px solid var(--ep-success); padding: 1rem; border-radius: 6px;">{decision}</div>', unsafe_allow_html=True)
 
-            st.markdown(f'<div style="color: var(--ep-muted); font-size: 0.8rem; text-align: center; margin-top: 1rem;">Latency: {result["inference_time"]:.1f} ms</div>', unsafe_allow_html=True)
+            st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+            
+            with st.expander("Technical Details"):
+                if result['detections']:
+                    d = result['detections'][0]
+                    conf = int(d['confidence']*100)
+                    st.write(f"**Confidence:** {conf}%")
+                st.write(f"**Latency:** {result['inference_time']:.1f} ms")
+                st.write("**Runtime:** ONNX")
+                
             st.markdown('</div>', unsafe_allow_html=True)
