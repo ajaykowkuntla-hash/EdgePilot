@@ -1,11 +1,40 @@
 {
-    "templates": {
-        "yolov8n_object_detection": {
-            "base_model": "yolov8n.pt",
-            "framework": "ultralytics",
-            "supported_export": [
-                "onnx"
-            ]
+    "categories": {
+        "product_defect": {
+            "name": "Product Defect Inspection",
+            "capability": "object_detection",
+            "model": "yolov8n",
+            "dataset": "NEU-DET",
+            "input_size": 640,
+            "export_format": "onnx",
+            "qualcomm_compatible": true,
+            "status": "available"
+        },
+        "component": {
+            "name": "Component Inspection",
+            "capability": "object_detection",
+            "model": "yolov8n",
+            "dataset": "DeepPCB",
+            "input_size": 640,
+            "export_format": "onnx",
+            "qualcomm_compatible": true,
+            "status": "available"
+        },
+        "packaging": {
+            "name": "Packaging Inspection",
+            "status": "discovery_required"
+        },
+        "food_quality": {
+            "name": "Food Quality Inspection",
+            "status": "discovery_required"
+        },
+        "counting": {
+            "name": "Counting & Presence Detection",
+            "status": "discovery_required"
+        },
+        "safety": {
+            "name": "Safety & Compliance",
+            "status": "discovery_required"
         }
     }
 }

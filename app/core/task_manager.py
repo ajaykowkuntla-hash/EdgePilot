@@ -64,13 +64,14 @@ class TaskManager:
         except Exception as e:
             print(f"Error ensuring demo tasks: {e}")
 
-    def create_task(self, task_id, name, template="yolov8n", objective="Detect defects", decision="Reject Product"):
+    def create_task(self, task_id, name, template="yolov8n", objective="Detect defects", decision="Reject Product", category=None):
         data = {
             "id": task_id,
             "name": name,
             "objective": objective,
             "capability": "Object Detection",
             "decision": decision,
+            "category": category,
             "status": "pending_data",
             "template": template,
             "dataset_path": None,

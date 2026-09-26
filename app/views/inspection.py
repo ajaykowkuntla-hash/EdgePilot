@@ -3,10 +3,11 @@ import os
 import zipfile
 import shutil
 import uuid
-import time
+import glob
 from app.core.task_manager import TaskManager
-from app.core.automl_engine import AutoMLEngine
-from app.ui.components import page_header, section_header, workflow_wizard, metric_card
+from app.core.registry import ModelRegistry
+from app.core.adaptation_engine import AdaptationEngine
+from app.ui.components import page_header, section_header, workflow_wizard
 
 def get_task_manager():
     user = st.session_state.get("user")
@@ -14,33 +15,13 @@ def get_task_manager():
         return None
     return TaskManager(uid=user["uid"], id_token=user["id_token"])
 
-automl_engine = AutoMLEngine()
-
 def reset_wizard():
-    st.session_state['wizard_step'] = 1
-    if 'selected_task_example' in st.session_state and st.session_state['selected_task_example'].startswith('custom'):
-        del st.session_state['selected_task_example']
+    for key in ['wizard_step', 'selected_category', 'selected_task_example', 'business_examples_dir', 'adaptation_result']:
+        if key in st.session_state:
+            del st.session_state[key]
 
 def next_step():
-    step = st.session_state.get('wizard_step', 1)
-
-    if step == 1:
-        task_id = st.session_state.get('selected_task_example', '')
-        if not task_id or (task_id not in ['steel', 'pcb'] and not task_id.startswith('custom_')):
-            task_id = f"custom_{uuid.uuid4().hex[:8]}"
-            st.session_state['selected_task_example'] = task_id
-
-        if task_id.startswith('custom_'):
-            get_task_manager().create_task(
-                task_id=task_id,
-                name=st.session_state.get('task_name', 'Custom Task'),
-                objective=st.session_state.get('task_objective', ''),
-                decision=st.session_state.get('business_rule', 'Reject Product')
-            )
-        else:
-            get_task_manager().update_task(task_id, {"decision": st.session_state.get('business_rule', 'Reject Product')})
-
-    st.session_state['wizard_step'] = min(3, step + 1)
+    st.session_state['wizard_step'] = min(6, st.session_state.get('wizard_step', 1) + 1)
 
 def prev_step():
     st.session_state['wizard_step'] = max(1, st.session_state.get('wizard_step', 1) - 1)
@@ -52,209 +33,74 @@ def render():
     step = st.session_state['wizard_step']
 
     page_header("INSPECTION WORKFLOW", "Create New Inspection", "Automate a repetitive visual task.")
-
-    workflow_wizard(current_step=step)
+    steps = ["Task", "Foundation", "Examples", "Adapt", "Evaluate", "Next Action"]
+    workflow_wizard(current_step=step, steps=steps)
 
     if step == 1: render_step_1()
     elif step == 2: render_step_2()
     elif step == 3: render_step_3()
+    elif step == 4: render_step_4()
+    elif step == 5: render_step_5()
+    elif step == 6: render_step_6()
 
     st.markdown("<hr/>", unsafe_allow_html=True)
-
     col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
-        if step > 1 and step < 3:
+        if 1 < step < 6:
             st.button("← Back", on_click=prev_step, use_container_width=True)
     with col3:
-        if step < 3:
-            if step == 2:
-                task_id = st.session_state.get('selected_task_example', '')
-                if task_id.startswith('custom_'):
-                    task = get_task_manager().get_task(task_id)
-                    if not task or not task.get('dataset_validation_status'):
-                        st.button("Continue →", disabled=True, use_container_width=True)
-                        return
-
+        if step == 2:
             st.button("Continue →", on_click=next_step, type="primary", use_container_width=True)
         elif step == 3:
-            task_id = st.session_state.get('selected_task_example', '')
-            task = get_task_manager().get_task(task_id)
-            if task and task.get('model_onnx'):
-                if st.button("Finish", type="primary", use_container_width=True):
-                    st.session_state['current_view'] = 'Dashboard'
-                    reset_wizard()
-                    st.rerun()
+            disabled = 'business_examples_dir' not in st.session_state
+            st.button("Continue →", on_click=next_step, type="primary", disabled=disabled, use_container_width=True)
+        elif step == 5:
+            st.button("Continue →", on_click=next_step, type="primary", use_container_width=True)
+        elif step == 6:
+            if st.button("Finish", type="primary", use_container_width=True):
+                st.session_state['current_view'] = 'Dashboard'
+                reset_wizard()
+                st.rerun()
 
 def render_step_1():
-    section_header("Inspection Configuration")
+    section_header("What do you want to automate?")
+    registry = ModelRegistry()
+    categories = registry.registry.get("categories", {})
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("<div style='margin-bottom: 0.5rem; font-weight: 500;'>Templates</div>", unsafe_allow_html=True)
-
-        # Validated foundations
-        if st.button("Product Defect Inspection", use_container_width=True):
-            st.session_state['task_name'] = "Product Defect Inspection"
-            st.session_state['task_objective'] = "Identify visible surface defects in steel components."
-            st.session_state['selected_task_example'] = 'steel'
-            st.session_state['discovery_required'] = False
-            st.rerun()
-        if st.button("Component Inspection", use_container_width=True):
-            st.session_state['task_name'] = "Component Inspection"
-            st.session_state['task_objective'] = "Detect manufacturing defects on PCBs."
-            st.session_state['selected_task_example'] = 'pcb'
-            st.session_state['discovery_required'] = False
-            st.rerun()
-
-        # Discovery required foundations
-        discovery_categories = [
-            ("Packaging Inspection", "packaging_inspection", "Inspect packaging for damages."),
-            ("Food Quality Inspection", "food_quality", "Detect defects in food products."),
-            ("Counting & Presence Detection", "counting_presence", "Count components or detect missing parts."),
-            ("Safety & Compliance", "safety_compliance", "Ensure safety gear is worn and compliance is met.")
-        ]
-
-        for cat_name, cat_id, cat_obj in discovery_categories:
-            if st.button(cat_name, use_container_width=True):
-                st.session_state['task_name'] = cat_name
-                st.session_state['task_objective'] = cat_obj
-                st.session_state['selected_task_example'] = cat_id
-                st.session_state['discovery_required'] = True
+        for cat_id, cat_info in categories.items():
+            if st.button(cat_info.get("name"), use_container_width=True):
+                st.session_state['selected_category'] = cat_id
+                st.session_state['selected_task_example'] = f"custom_{uuid.uuid4().hex[:8]}"
+                next_step()
                 st.rerun()
 
-    with col2:
-        st.text_input("Inspection Name", value=st.session_state.get('task_name', "Custom Inspection"), key='task_name')
-        st.text_area("Objective", value=st.session_state.get('task_objective', "Identify visible defects."), key='task_objective', height=70)
-
-        st.markdown("<div style='margin-bottom: 0.5rem; font-weight: 500; margin-top: 1rem;'>When an issue is found:</div>", unsafe_allow_html=True)
-        st.selectbox(
-            "Action",
-            ["Reject Product", "Alert Operator", "Record Inspection", "Count Defects"],
-            key='business_rule',
-            label_visibility="collapsed"
-        )
-
-        if 'selected_task_example' not in st.session_state:
-            st.session_state['selected_task_example'] = ''
-            st.session_state['discovery_required'] = False
-
 def render_step_2():
-    section_header("Provide Data")
-    st.write("Upload a ZIP folder containing examples of your products and defects.")
+    section_header("Foundation Workflow")
+    st.write("EdgePilot selected a foundation workflow for this task.")
 
-    task_example = st.session_state.get('selected_task_example', '')
-    discovery_required = st.session_state.get('discovery_required', False)
+    cat_id = st.session_state.get('selected_category')
+    registry = ModelRegistry()
+    cat_info = registry.registry.get("categories", {}).get(cat_id, {})
 
-    if discovery_required:
-        st.markdown(f"""
-            <div class="ep-card" style="border-left: 4px solid var(--ep-warning);">
-                <div class="ep-card-header">FOUNDATION STATUS</div>
-                <div style="font-size: 1.2rem; font-weight: bold; color: var(--ep-text); margin-bottom: 0.5rem;">No Validated Foundation</div>
-                <div style="color: var(--ep-muted);">EdgePilot doesn't currently have a validated AI foundation for this automation type.</div>
-            </div>
-        """, unsafe_allow_html=True)
+    with st.expander("Technical Details"):
+        st.write(f"**Model:** {cat_info.get('model', 'N/A')}")
+        st.write(f"**Dataset:** {cat_info.get('dataset', 'N/A')}")
+        st.write(f"**Input Size:** {cat_info.get('input_size', 'N/A')}")
+        st.write(f"**Export Format:** {cat_info.get('export_format', 'N/A')}")
 
-        if st.button("Discover compatible AI foundations", type="primary", use_container_width=True):
-            st.session_state['run_discovery'] = True
-            st.rerun()
+def render_step_3():
+    section_header("Provide Examples")
+    st.write("Provide representative examples. EdgePilot will evaluate whether the available examples are sufficient for adaptation.")
 
-        if st.session_state.get('run_discovery', False):
-            from app.core.dataset_discovery import DatasetDiscoveryEngine
-
-            with st.spinner("Finding compatible datasets..."):
-                time.sleep(1)
-            with st.spinner("Checking task compatibility..."):
-                time.sleep(1)
-            with st.spinner("Checking available metadata..."):
-                time.sleep(1)
-            with st.spinner("Checking licensing information..."):
-                engine = DatasetDiscoveryEngine(use_mock=True) # default to mock for tests
-                candidates = engine.search_candidates(st.session_state.get('task_name'))
-
-            st.markdown("### Discovered Candidates")
-            if not candidates:
-                st.info("No compatible datasets found.")
-            else:
-                for idx, c in enumerate(candidates):
-                    color = "var(--ep-success)" if c['status'] == 'approved' else "var(--ep-warning)" if c['status'] == 'review_required' else "var(--ep-danger)"
-                    st.markdown(f"""
-                    <div style="border: 1px solid var(--ep-border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <h4 style="margin:0 0 0.5rem 0;">{c['name']}</h4>
-                        <div style="font-size: 0.9rem; color: var(--ep-muted); margin-bottom: 0.5rem;">
-                            <strong>Source:</strong> {c['source']}<br/>
-                            <strong>Task:</strong> {c['task_type']}<br/>
-                            <strong>Classes:</strong> {c['classes'] or 'Unknown'}<br/>
-                            <strong>License:</strong> {c['license']}
-                        </div>
-                        <div style="display: inline-block; padding: 0.25rem 0.5rem; background: {color}; color: white; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 1rem;">
-                            Status: {c['status'].replace('_', ' ').title()}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    if c['status'] not in ['incompatible', 'license_unknown']:
-                        if st.button("Select Dataset", key=f"select_{idx}"):
-                            st.session_state['selected_candidate'] = c
-                            st.rerun()
-
-        candidate = st.session_state.get('selected_candidate')
-        if candidate:
-            st.markdown("### Review Dataset")
-            if candidate['status'] == 'review_required':
-                st.warning("This dataset requires license review before commercial use.")
-                confirmed = st.checkbox("I understand that this dataset requires license review before commercial use.")
-                candidate['user_confirmed'] = confirmed
-            else:
-                confirmed = True
-
-            if st.button("Import Dataset", disabled=not confirmed, type="primary"):
-                from app.core.dataset_importer import DatasetImporter
-                from app.core.dataset_normalizer import DatasetNormalizer
-
-                with st.spinner("Importing and normalizing..."):
-                    importer = DatasetImporter(task_example, use_mock=True) # use mock for safety in MVP
-                    source_dir = importer.import_dataset(candidate)
-
-                    normalizer = DatasetNormalizer(task_example)
-                    res = normalizer.normalize()
-
-                    if res.get('is_valid'):
-                        get_task_manager().update_task(task_example, {
-                            "foundation_dataset": candidate['name'],
-                            "foundation_source": candidate['source'],
-                            "foundation_license": candidate['license'],
-                            "dataset_path": normalizer.normalized_dir,
-                            "dataset_validation_status": True
-                        })
-                        st.success("Foundation dataset ready for EdgePilot.")
-                        st.session_state['run_discovery'] = False
-                        del st.session_state['selected_candidate']
-                        time.sleep(2)
-                        st.rerun()
-                    else:
-                        st.error(f"Normalization failed: {res.get('errors')}")
-
-        return
-
-    if task_example in ['steel', 'pcb']:
-        st.markdown(f"""
-            <div class="ep-card" style="border-left: 4px solid var(--ep-success);">
-                <div class="ep-card-header">DATASET STATUS</div>
-                <div style="font-size: 1.2rem; font-weight: bold; color: var(--ep-text); margin-bottom: 0.5rem;">Demo Dataset Loaded</div>
-                <div style="color: var(--ep-muted);">Using verified pre-loaded dataset.</div>
-            </div>
-        """, unsafe_allow_html=True)
-        return
-
-    uploaded_file = st.file_uploader("Upload Dataset (ZIP)", type=["zip"])
-
+    uploaded_file = st.file_uploader("Upload Examples (ZIP)", type=["zip"])
     if uploaded_file:
         task_id = st.session_state.get('selected_task_example', '')
-        dataset_dir = os.path.join("datasets", task_id)
-
+        dataset_dir = os.path.join("datasets", task_id, "business_examples")
         if not os.path.exists(dataset_dir):
             os.makedirs(dataset_dir)
-            with st.spinner("Extracting dataset..."):
+            with st.spinner("Extracting..."):
                 zip_path = os.path.join(dataset_dir, "dataset.zip")
                 with open(zip_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
@@ -271,86 +117,81 @@ def render_step_2():
                             return
                         zip_ref.extract(member, dest_dir_abs)
                 os.remove(zip_path)
-
-                get_task_manager().update_task(task_id, {"dataset_path": dataset_dir})
+                st.session_state['business_examples_dir'] = dataset_dir
                 st.rerun()
 
-    task = get_task_manager().get_task(task_example) if task_example.startswith('custom_') else None
+    if 'business_examples_dir' in st.session_state:
+        st.success("Business examples loaded successfully.")
 
-    if task and task.get('dataset_path') and os.path.exists(task.get('dataset_path')):
-        if st.button("Validate Dataset", use_container_width=True):
-            with st.spinner("Validating data structure..."):
-                result = automl_engine.validate_dataset(task['dataset_path'])
+def render_step_4():
+    section_header("Adaptation")
+    st.write("Train lightweight model using your examples combined with the foundation.")
+    st.info("Note: Training and evaluation may take several minutes. Please do not close this window.")
 
-                if result['is_valid']:
-                    get_task_manager().update_task(task_example, {"dataset_validation_status": True})
-                else:
-                    st.error("There is an issue with the dataset.")
-                    for err in result['errors']:
-                        st.write(f"✗ {err}")
-                    get_task_manager().update_task(task_example, {"dataset_validation_status": False})
+    if st.button("Start Adaptation", type="primary", use_container_width=True, disabled=st.session_state.get('is_adapting', False)):
+        st.session_state['is_adapting'] = True
+        st.rerun()
 
-        if task.get('dataset_validation_status'):
-            st.markdown("""
-                <div class="ep-card" style="border-left: 4px solid var(--ep-success); margin-top: 1rem;">
-                    <div style="font-weight: bold; color: var(--ep-text);">✓ Dataset structure valid</div>
-                    <div style="color: var(--ep-muted); font-size: 0.9rem;">Ready for processing</div>
-                </div>
-            """, unsafe_allow_html=True)
+    if st.session_state.get('is_adapting', False):
+        task_id = st.session_state.get('selected_task_example')
+        biz_dir = st.session_state.get('business_examples_dir')
+
+        # Build business examples dict
+        images = glob.glob(f"{biz_dir}/**/*.jpg", recursive=True) + glob.glob(f"{biz_dir}/**/*.png", recursive=True) if biz_dir else []
+        labels = glob.glob(f"{biz_dir}/**/*.txt", recursive=True) if biz_dir else []
+
+        biz_dict = {"images": images, "labels": labels}
+
+        # Determine foundation yaml
+        foundation_yaml = st.session_state.get('test_foundation_yaml', "datasets/NEU-DET_baseline/dataset.yaml")
+        if not os.path.exists(foundation_yaml):
+            st.error("Foundation dataset is unavailable for this task.")
+            st.session_state['is_adapting'] = False
+            return
+
+        with st.spinner("Adapting model... (This may take several minutes)"):
+            engine = AdaptationEngine(task_id)
+            # Use validated Phase 22 baseline mapping
+            baseline = {"map50": 0.6521}
+            result = engine.adapt_and_evaluate(foundation_yaml, biz_dict, baseline)
+            st.session_state['adaptation_result'] = result
+
+        st.session_state['is_adapting'] = False
+        next_step()
+        st.rerun()
+
+def render_step_5():
+    section_header("Evaluation")
+    res = st.session_state.get('adaptation_result', {})
+    decision = res.get('decision', 'UNKNOWN')
+
+    if decision == "ADAPTATION_SUPPORTED":
+        st.markdown('<div class="ep-card" style="border-left: 4px solid var(--ep-success); font-weight: bold; font-size: 1.2rem;">ADAPTATION SUPPORTED</div>', unsafe_allow_html=True)
+    elif decision == "MORE_DATA_RECOMMENDED":
+        st.markdown('<div class="ep-card" style="border-left: 4px solid var(--ep-warning); font-weight: bold; font-size: 1.2rem;">MORE EXAMPLES RECOMMENDED</div>', unsafe_allow_html=True)
     else:
-        st.markdown("""
-            <div class="ep-card" style="border-left: 4px solid var(--ep-warning); margin-top: 1rem;">
-                <div style="font-weight: bold; color: var(--ep-text);">Data Required</div>
-                <div style="color: var(--ep-muted); font-size: 0.9rem;">Please upload representative business data.</div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="ep-card" style="border-left: 4px solid var(--ep-danger); font-weight: bold; font-size: 1.2rem;">ADAPTATION NOT SUPPORTED</div>', unsafe_allow_html=True)
 
-def render_step_3():
-    section_header("Process & Complete")
+    with st.expander("Technical Details"):
+        metrics = res.get('metrics', {})
+        st.write("**Validation Status:** Complete")
+        st.write(f"**mAP50:** {metrics.get('map50', 0):.4f}")
+        st.write(f"**Precision:** {metrics.get('precision', 0):.4f}")
+        st.write(f"**Recall:** {metrics.get('recall', 0):.4f}")
 
-    task_example = st.session_state.get('selected_task_example', '')
-    task = get_task_manager().get_task(task_example)
+        biz_dir = st.session_state.get('business_examples_dir', '')
+        images = glob.glob(f"{biz_dir}/**/*.jpg", recursive=True) + glob.glob(f"{biz_dir}/**/*.png", recursive=True) if biz_dir else []
+        st.write(f"**Examples Used:** {len(images)}")
+        st.write(f"**Model Size:** {res.get('model_size_mb', 0):.2f} MB")
 
-    is_demo = task_example in ['steel', 'pcb']
+def render_step_6():
+    section_header("Next Action")
+    res = st.session_state.get('adaptation_result', {})
+    decision = res.get('decision', 'UNKNOWN')
 
-    if is_demo or task.get('training_status') == 'Complete':
-        st.markdown("""
-        <div class="ep-card" style="border-left: 4px solid var(--ep-success); margin-bottom: 2rem;">
-            <div style="font-weight: bold; color: var(--ep-text); font-size: 1.2rem;">✓ Processing Complete</div>
-            <div style="color: var(--ep-muted); font-size: 0.9rem; margin-top: 0.5rem;">Your inspection model is ready for use.</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if not is_demo and not task.get('model_onnx'):
-            with st.spinner("Finalizing setup..."):
-                onnx_path = automl_engine.export_onnx(task['model_pt'])
-                get_task_manager().update_task(task_example, {"model_onnx": onnx_path})
-                st.rerun()
-
-        metrics = task.get('evaluation_metrics', {}) if not is_demo else {'precision': 0.95, 'recall': 0.92, 'map50': 0.5785 if task_example == 'steel' else 0.0817}
-
-        m_col1, m_col2 = st.columns(2)
-        has_metrics = 'precision' in metrics
-        with m_col1: metric_card("Accuracy Score", f"{metrics.get('precision', 0)*100:.1f}%" if has_metrics else "Not available")
-        with m_col2: metric_card("Detection Rate", f"{metrics.get('map50', 0)*100:.1f}%" if has_metrics else "Not available")
-
+    if decision == "ADAPTATION_SUPPORTED":
+        st.success("Model ready for deployment validation.")
+    elif decision == "MORE_DATA_RECOMMENDED":
+        st.info("Provide more representative examples and evaluate again.")
     else:
-        st.write("EdgePilot will automatically train a computer vision model and prepare it for deployment.")
-
-        if st.button("Start Processing", type="primary", use_container_width=True):
-            with st.spinner("Processing data... (This may take a few minutes)"):
-                yaml_path = os.path.join(task['dataset_path'], "data.yaml")
-                if not os.path.exists(yaml_path):
-                    yaml_path = os.path.join(task['dataset_path'], "dataset.yaml")
-
-                model_pt, train_time, results = automl_engine.train(task_example, yaml_path)
-
-            with st.spinner("Evaluating performance..."):
-                metrics = automl_engine.evaluate(model_pt, yaml_path)
-
-            get_task_manager().update_task(task_example, {
-                "training_status": "Complete",
-                "model_pt": model_pt,
-                "evaluation_metrics": metrics
-            })
-            st.rerun()
+        st.error("Provide more representative examples and evaluate again.")
