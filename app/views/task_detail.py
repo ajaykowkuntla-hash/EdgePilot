@@ -9,7 +9,10 @@ def render():
         return
 
     task_id = st.session_state['selected_existing_task']
-    task_manager = TaskManager()
+    task_manager = TaskManager(
+        uid=st.session_state.user["uid"],
+        id_token=st.session_state.user["id_token"]
+    )
     task = task_manager.get_task(task_id)
 
     if not task:

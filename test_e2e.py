@@ -78,7 +78,7 @@ def test_pipeline():
     from ultralytics import YOLO
     inf_module._model_onnx = YOLO(onnx_path)
     
-    result = inf_module.run_inference(image_bytes, conf=0.5, engine="onnx")
+    result = inf_module.run_inference(image_bytes, confidence_threshold=0.5, engine="onnx")
     if "error" in result:
         print("   Inference Error:", result["error"])
     else:

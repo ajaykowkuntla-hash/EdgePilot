@@ -30,7 +30,7 @@ EdgePilot uses a localized Streamlit application layer to orchestrate a modular 
 
 ## Architectural Components
 
-1. **Application Layer**: A Streamlit-based interface that maintains configuration state, handles ZIP dataset ingestion, and visualizes progress across the 8-step business workflow.
+1. **Application Layer**: A Streamlit-based interface that maintains configuration state, handles ZIP dataset ingestion, and visualizes progress across the 3-step business workflow.
 2. **ML Pipeline**: A local Ultralytics-driven AutoML engine that automatically validates datasets, trains a customized YOLOv8-N object detection model, and evaluates accuracy metrics.
 3. **Deployment Layer**: Automatically converts the trained PyTorch artifacts into the portable ONNX runtime format for edge flexibility.
 4. **Qualcomm Validation Layer**: An integration layer designed to profile the ONNX artifacts on hosted Snapdragon hardware via the Qualcomm AI Hub API, isolating target validation from local development constraints.

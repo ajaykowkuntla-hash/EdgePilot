@@ -13,15 +13,21 @@ Micro, Small, and Medium Enterprises (MSMEs) struggle to adopt AI for repetitive
 EdgePilot is a configurable edge-AI automation platform built for MSMEs. It provides a simple, business-driven workflow that turns task-specific business data into edge-deployable ONNX models without requiring specialized ML expertise. EdgePilot bridges the gap between defining a business requirement and executing an AI model on efficient edge hardware.
 
 ## 4. How It Works
-The platform provides a guided 8-step pipeline:
-1. **Business Requirement**: The user defines the inspection goal.
-2. **Inspection Task**: The system maps the requirement to an ML task (e.g., object detection).
-3. **Business Data**: The user uploads a ZIP containing task-specific image data.
-4. **Business Rule**: The user defines the pass/fail condition (e.g., maximum defect threshold).
-5. **AI Preparation**: EdgePilot validates the dataset.
-6. **Train & Evaluate**: EdgePilot automatically trains a YOLOv8-N model on the provided data.
-7. **Deployment**: The trained model is exported to the ONNX format.
-8. **Business Result**: The model performs local ONNX inference, overlaying the business decision rule to automate the inspection.
+The platform provides a simple 3-step user-facing workflow, while seamlessly executing a complete technical pipeline underneath.
+
+### User-Facing Workflow
+1. **Configure**: The user defines the Inspection Name, Target, and Business Rule (pass/fail condition).
+2. **Provide Data**: The user uploads a ZIP containing task-specific image data.
+3. **Process & Complete**: EdgePilot automatically trains, evaluates, and exports the model, then presents high-level outcome metrics.
+
+### Underlying Technical Pipeline
+Under the hood, EdgePilot executes a strict, robust AutoML workflow:
+- **Dataset validation**: Ensures the structural integrity of the uploaded data.
+- **Training**: Automatically trains a YOLOv8-N model on the provided data.
+- **Evaluation**: Calculates precision, recall, and mAP metrics.
+- **ONNX export**: Converts the trained PyTorch model to the ONNX runtime format.
+- **Local inference**: Performs local ONNX inference, overlaying the business decision rule to automate the inspection.
+- **Qualcomm AI Hub validation**: (Validated externally) Hosted pipeline to compile, profile, and verify the ONNX model specifically for the Snapdragon NPU.
 
 ## 5. Snapdragon/Qualcomm Role
 EdgePilot leverages the Snapdragon X Elite NPU for efficient edge inference. By exporting task-specific models to the ONNX runtime format, EdgePilot ensures that the deployed models can take full advantage of Qualcomm's dedicated neural processing hardware, enabling fast and efficient execution directly at the edge.

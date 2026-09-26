@@ -4,3 +4,6 @@ opencv-python-headless
 Pillow
 numpy
 PyYAML
+requests
+python-dotenv
+pytest

@@ -8,7 +8,12 @@ from app.core.task_manager import TaskManager
 from app.core.automl_engine import AutoMLEngine
 from app.ui.components import page_header, section_header, workflow_wizard, metric_card
 
-task_manager = TaskManager()
+def get_task_manager():
+    user = st.session_state.get("user")
+    if not user:
+        return None
+    return TaskManager(uid=user["uid"], id_token=user["id_token"])
+
 automl_engine = AutoMLEngine()
 
 def reset_wizard():
@@ -26,14 +31,14 @@ def next_step():
             st.session_state['selected_task_example'] = task_id
 
         if task_id.startswith('custom_'):
-            task_manager.create_task(
+            get_task_manager().create_task(
                 task_id=task_id,
                 name=st.session_state.get('task_name', 'Custom Task'),
                 objective=st.session_state.get('task_objective', ''),
                 decision=st.session_state.get('business_rule', 'Reject Product')
             )
         else:
-            task_manager.update_task(task_id, {"decision": st.session_state.get('business_rule', 'Reject Product')})
+            get_task_manager().update_task(task_id, {"decision": st.session_state.get('business_rule', 'Reject Product')})
 
     st.session_state['wizard_step'] = min(3, step + 1)
 
@@ -65,7 +70,7 @@ def render():
             if step == 2:
                 task_id = st.session_state.get('selected_task_example', '')
                 if task_id.startswith('custom_'):
-                    task = task_manager.get_task(task_id)
+                    task = get_task_manager().get_task(task_id)
                     if not task or not task.get('dataset_validation_status'):
                         st.button("Continue →", disabled=True, use_container_width=True)
                         return
@@ -73,7 +78,7 @@ def render():
             st.button("Continue →", on_click=next_step, type="primary", use_container_width=True)
         elif step == 3:
             task_id = st.session_state.get('selected_task_example', '')
-            task = task_manager.get_task(task_id)
+            task = get_task_manager().get_task(task_id)
             if task and task.get('model_onnx'):
                 if st.button("Finish", type="primary", use_container_width=True):
                     st.session_state['current_view'] = 'Dashboard'
@@ -100,7 +105,7 @@ def render_step_1():
     with col2:
         st.text_input("Inspection Name", value=st.session_state.get('task_name', "Custom Inspection"), key='task_name')
         st.text_area("Objective", value=st.session_state.get('task_objective', "Identify visible defects."), key='task_objective', height=70)
-        
+
         st.markdown("<div style='margin-bottom: 0.5rem; font-weight: 500; margin-top: 1rem;'>When an issue is found:</div>", unsafe_allow_html=True)
         st.selectbox(
             "Action",
@@ -154,10 +159,10 @@ def render_step_2():
                         zip_ref.extract(member, dest_dir_abs)
                 os.remove(zip_path)
 
-                task_manager.update_task(task_id, {"dataset_path": dataset_dir})
+                get_task_manager().update_task(task_id, {"dataset_path": dataset_dir})
                 st.rerun()
 
-    task = task_manager.get_task(task_example) if task_example.startswith('custom_') else None
+    task = get_task_manager().get_task(task_example) if task_example.startswith('custom_') else None
 
     if task and task.get('dataset_path') and os.path.exists(task.get('dataset_path')):
         if st.button("Validate Dataset", use_container_width=True):
@@ -165,12 +170,12 @@ def render_step_2():
                 result = automl_engine.validate_dataset(task['dataset_path'])
 
                 if result['is_valid']:
-                    task_manager.update_task(task_example, {"dataset_validation_status": True})
+                    get_task_manager().update_task(task_example, {"dataset_validation_status": True})
                 else:
                     st.error("There is an issue with the dataset.")
                     for err in result['errors']:
                         st.write(f"✗ {err}")
-                    task_manager.update_task(task_example, {"dataset_validation_status": False})
+                    get_task_manager().update_task(task_example, {"dataset_validation_status": False})
 
         if task.get('dataset_validation_status'):
             st.markdown("""
@@ -191,8 +196,8 @@ def render_step_3():
     section_header("Process & Complete")
 
     task_example = st.session_state.get('selected_task_example', '')
-    task = task_manager.get_task(task_example)
-    
+    task = get_task_manager().get_task(task_example)
+
     is_demo = task_example in ['steel', 'pcb']
 
     if is_demo or task.get('training_status') == 'Complete':
@@ -206,19 +211,19 @@ def render_step_3():
         if not is_demo and not task.get('model_onnx'):
             with st.spinner("Finalizing setup..."):
                 onnx_path = automl_engine.export_onnx(task['model_pt'])
-                task_manager.update_task(task_example, {"model_onnx": onnx_path})
+                get_task_manager().update_task(task_example, {"model_onnx": onnx_path})
                 st.rerun()
-                
+
         metrics = task.get('evaluation_metrics', {}) if not is_demo else {'precision': 0.95, 'recall': 0.92, 'map50': 0.5785 if task_example == 'steel' else 0.0817}
-        
+
         m_col1, m_col2 = st.columns(2)
         has_metrics = 'precision' in metrics
         with m_col1: metric_card("Accuracy Score", f"{metrics.get('precision', 0)*100:.1f}%" if has_metrics else "Not available")
         with m_col2: metric_card("Detection Rate", f"{metrics.get('map50', 0)*100:.1f}%" if has_metrics else "Not available")
-        
+
     else:
         st.write("EdgePilot will automatically train a computer vision model and prepare it for deployment.")
-        
+
         if st.button("Start Processing", type="primary", use_container_width=True):
             with st.spinner("Processing data... (This may take a few minutes)"):
                 yaml_path = os.path.join(task['dataset_path'], "data.yaml")
@@ -230,7 +235,7 @@ def render_step_3():
             with st.spinner("Evaluating performance..."):
                 metrics = automl_engine.evaluate(model_pt, yaml_path)
 
-            task_manager.update_task(task_example, {
+            get_task_manager().update_task(task_example, {
                 "training_status": "Complete",
                 "model_pt": model_pt,
                 "evaluation_metrics": metrics

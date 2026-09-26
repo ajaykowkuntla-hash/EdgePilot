@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 
 # Configure the Streamlit page
 st.set_page_config(
@@ -10,12 +11,15 @@ st.set_page_config(
 from app.ui.styles import apply_global_styles
 apply_global_styles()
 
-# Import the views
-from app.views import login, dashboard, inspection, dataset, model, inference, reports, task_detail, settings
+from app.core.auth import exchange_google_code_for_firebase_token
+from app.views import login
 
 # Initialize session state for auth and navigation
 if 'authenticated' not in st.session_state:
     st.session_state['authenticated'] = False
+
+if 'user' not in st.session_state:
+    st.session_state['user'] = None
 
 if 'current_view' not in st.session_state:
     st.session_state['current_view'] = 'Dashboard'
@@ -23,10 +27,37 @@ if 'current_view' not in st.session_state:
 def set_view(view_name):
     st.session_state['current_view'] = view_name
 
-# Auth gate
+# Check for Google OAuth code in query params
 if not st.session_state['authenticated']:
+    query_params = st.query_params
+    if 'code' in query_params:
+        code = query_params['code']
+        # Clear query params to prevent re-triggering
+        st.query_params.clear()
+
+        try:
+            with st.spinner("Authenticating with Google..."):
+                fb_result = exchange_google_code_for_firebase_token(code)
+                st.session_state['authenticated'] = True
+                st.session_state['user'] = {
+                    "uid": fb_result["localId"],
+                    "email": fb_result.get("email", ""),
+                    "display_name": fb_result.get("displayName", ""),
+                    "photo_url": fb_result.get("photoUrl", ""),
+                    "id_token": fb_result["idToken"],
+                    "refresh_token": fb_result["refreshToken"]
+                }
+            st.rerun()
+        except Exception as e:
+            st.error(f"Google Authentication failed: {str(e)}")
+
+# Auth gate
+if not st.session_state['authenticated'] or not st.session_state['user']:
     login.render()
     st.stop()
+
+# Only import protected views after authentication is confirmed
+from app.views import dashboard, inspection, dataset, model, inference, reports, task_detail, settings
 
 # Define the navigation structure
 VIEWS = {
@@ -34,7 +65,7 @@ VIEWS = {
     "Inspections": inspection.render,
     "Reports": reports.render,
     "Settings": settings.render,
-    
+
     # Internal mappings
     "Task Detail": task_detail.render,
     "Inference": inference.render,
@@ -60,19 +91,26 @@ with st.sidebar:
                      type="primary" if st.session_state['current_view'] == view_name else "secondary"):
             set_view(view_name)
             st.rerun()
-            
+
     if st.button("Help", use_container_width=True, type="secondary"):
         st.info("Documentation coming soon.")
-        
+
     if st.button("Sign Out", use_container_width=True, type="secondary"):
         st.session_state['authenticated'] = False
+        st.session_state['user'] = None
         st.session_state['current_view'] = 'Dashboard'
         st.rerun()
 
-    st.markdown("""
+    # User profile section
+    user_email = st.session_state.user.get('email', 'User')
+    display_name = st.session_state.user.get('display_name', '')
+
+    name_display = display_name if display_name else user_email.split('@')[0]
+
+    st.markdown(f"""
         <div style="margin-top: auto; padding-top: 4rem; border-top: 1px solid var(--ep-border); margin-top: 2rem;">
-            <div style="font-size: 0.7rem; color: var(--ep-muted); margin-bottom: 0.25rem;">EDGE PILOT v1.0</div>
-            <div style="font-size: 0.7rem; color: var(--ep-muted);">admin@example.com</div>
+            <div style="font-size: 0.75rem; font-weight: 600; color: var(--ep-text); margin-bottom: 0.25rem;">{name_display}</div>
+            <div style="font-size: 0.7rem; color: var(--ep-muted); word-break: break-all;">{user_email}</div>
         </div>
     """, unsafe_allow_html=True)
 

@@ -32,52 +32,64 @@ def render():
 
     section_header("Inspection History")
 
+    from app.core.task_manager import TaskManager
+    task_manager = TaskManager(
+        uid=st.session_state.user["uid"],
+        id_token=st.session_state.user["id_token"]
+    )
+
+    tasks = task_manager.list_tasks()
+    deployed_tasks = [t for t in tasks if t.get("status") == "deployed"]
+
+    st.markdown('<div class="ep-card" style="padding: 0; overflow: hidden;">', unsafe_allow_html=True)
     st.markdown("""
-        <div class="ep-card" style="padding: 0; overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--ep-border); color: var(--ep-muted); background-color: var(--ep-surface-2);">
-                        <th style="padding: 1rem;">Time</th>
-                        <th style="padding: 1rem;">Inspection</th>
-                        <th style="padding: 1rem;">Items</th>
-                        <th style="padding: 1rem;">Result</th>
-                        <th style="padding: 1rem;">Duration</th>
-                    </tr>
-                </thead>
-                <tbody style="color: var(--ep-text);">
-                    <tr style="border-bottom: 1px solid var(--ep-border);">
-                        <td style="padding: 1rem;">10:42 AM</td>
-                        <td style="padding: 1rem;">Batch #1042</td>
-                        <td style="padding: 1rem;">240</td>
-                        <td style="padding: 1rem;"><span class="ep-badge success">✓ Complete</span></td>
-                        <td style="padding: 1rem;">03:12</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--ep-border);">
-                        <td style="padding: 1rem;">10:35 AM</td>
-                        <td style="padding: 1rem;">Batch #1041</td>
-                        <td style="padding: 1rem;">180</td>
-                        <td style="padding: 1rem;"><span class="ep-badge success">✓ Complete</span></td>
-                        <td style="padding: 1rem;">02:41</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 1rem;">10:21 AM</td>
-                        <td style="padding: 1rem;">Batch #1040</td>
-                        <td style="padding: 1rem;">195</td>
-                        <td style="padding: 1rem;"><span class="ep-badge warning">⚠ 3 Issues</span></td>
-                        <td style="padding: 1rem;">02:58</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div style="padding: 1rem; text-align: center; font-size: 0.8rem; color: var(--ep-muted); border-top: 1px solid var(--ep-border); background-color: var(--ep-bg);">
-                DEMO DATA
-            </div>
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--ep-border); color: var(--ep-muted); background-color: var(--ep-surface-2);">
+                    <th style="padding: 1rem;">Task ID</th>
+                    <th style="padding: 1rem;">Name</th>
+                    <th style="padding: 1rem;">Status</th>
+                    <th style="padding: 1rem;">Validation</th>
+                </tr>
+            </thead>
+            <tbody style="color: var(--ep-text);">
+    """, unsafe_allow_html=True)
+
+    if deployed_tasks:
+        for t in deployed_tasks:
+            t_id = t.get("id", "")
+            t_name = t.get("name", "Unknown")
+            status = '<span class="ep-badge success">✓ Complete</span>'
+            val = t.get("snapdragon", "Unknown")
+
+            st.markdown(f"""
+                <tr style="border-bottom: 1px solid var(--ep-border);">
+                    <td style="padding: 1rem;">{t_id}</td>
+                    <td style="padding: 1rem;">{t_name}</td>
+                    <td style="padding: 1rem;">{status}</td>
+                    <td style="padding: 1rem;">{val}</td>
+                </tr>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <tr>
+                <td colspan="4" style="padding: 1rem; text-align: center; color: var(--ep-muted);">No deployed inspections found.</td>
+            </tr>
+        """, unsafe_allow_html=True)
+
+    st.markdown("""
+            </tbody>
+        </table>
+        <div style="padding: 1rem; text-align: center; font-size: 0.8rem; color: var(--ep-muted); border-top: 1px solid var(--ep-border); background-color: var(--ep-bg);">
+            Synced from Cloud
         </div>
+    </div>
     """, unsafe_allow_html=True)
 
     with st.expander("TECHNICAL DETAILS"):
         st.markdown("<h3 style='margin-top: 1rem;'>Hardware Validation & Scope</h3>", unsafe_allow_html=True)
         st.markdown("<p style='color: var(--ep-muted);'>EdgePilot compiles and profiles ONNX models against the Snapdragon X Elite NPU.</p>", unsafe_allow_html=True)
-        
+
         # Evidence.py contents
         ecol1, ecol2 = st.columns(2)
         with ecol1:
@@ -105,7 +117,7 @@ def render():
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-            
+
         with ecol2:
             st.markdown("""
                 <div class="ep-card" style="border-top: 4px solid var(--ep-warning); height: 100%;">

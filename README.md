@@ -2,12 +2,12 @@
 
 **"AI Automation, Built for the Edge."**
 
-EdgePilot is a configurable edge-AI automation platform focused on practical, high-speed visual inspection for Micro, Small, and Medium Enterprises (MSMEs). 
+EdgePilot is a configurable edge-AI automation platform focused on practical, high-speed visual inspection for Micro, Small, and Medium Enterprises (MSMEs).
 
 By bringing advanced AI out of the cloud and directly onto the edge hardware (via the Snapdragon NPU), EdgePilot offers local privacy, sub-10ms latency, and zero-cloud-cost inspection pipelines.
 
 ## The Problem
-Industrial inspection—especially for manufacturing defects—traditionally requires expensive, proprietary hardware or heavily cloud-reliant systems. Cloud latency ruins high-speed assembly line integration, and privacy concerns prevent many manufacturers from adopting AI. 
+Industrial inspection—especially for manufacturing defects—traditionally requires expensive, proprietary hardware or heavily cloud-reliant systems. Cloud latency ruins high-speed assembly line integration, and privacy concerns prevent many manufacturers from adopting AI.
 
 ## The Solution
 EdgePilot uses heavily optimized YOLOv8 architectures compiled directly for Neural Processing Units (NPUs). We abstract away the ML complexity through an AutoML engine, allowing business users to define their inspection criteria, provide a dataset, and automatically receive a highly optimized edge model.
@@ -31,7 +31,7 @@ Our foundational proof-of-concept is an industrial steel surface-defect detectio
 To prove EdgePilot isn't hardcoded for a single task, we built a rigid **AutoMLEngine** (`app/core/automl_engine.py`) and validated it against a completely different industrial domain: **Printed Circuit Board (PCB) defects** (DeepPCB dataset).
 
 - **Objective**: Take a raw industrial dataset and autonomously train/export a YOLOv8-N model using a fixed template configuration.
-- **Validation**: The pipeline successfully trained a miniature 5-epoch proof-of-concept on a 50-image subset in under 60 seconds (local Mac) and exported the ONNX graph successfully. 
+- **Validation**: The pipeline successfully trained a miniature 5-epoch proof-of-concept on a 50-image subset in under 60 seconds (local Mac) and exported the ONNX graph successfully.
 - **Qualcomm AI Hub Validation**: VERIFIED
 - **Target Hardware**: Snapdragon X Elite CRD
 - **Runtime & Precision**: ONNX, FP16
@@ -133,4 +133,9 @@ EdgePilot is rapidly evolving, but we value transparency:
 - **Mac vs. Snapdragon Inference**: The current local Streamlit demo runs ONNX on Mac CPU. The 5.8ms NPU claim is strictly based on our isolated, verified Qualcomm AI Hub deployments, not the live local UI.
 - **AutoML is an MVP**: The current AutoML abstraction uses a highly constrained, rigid configuration (YOLOv8-N, 640x640, 5 epochs). It is an MVP, not an arbitrary hyperparameter search engine.
 - **Task B Accuracy**: The 5-epoch DeepPCB run is purely a functional pipeline proof-of-concept. The resulting mAP is expectedly low and is not intended for production inspection without scaling the epochs.
-- **Cloud/Auth/DB**: We have strictly avoided cloud databases, FastAPI, or authentication to maintain a pure edge-first focus.
+- **Phase 16: Secure Multi-Tenant Cloud Architecture**: We have integrated Firebase Authentication (Email/Password & Google OAuth) and Cloud Firestore to securely isolate user workspaces.
+  - **Firebase Authentication**: Enforces real email/password login and securely handles session tracking and token verification. Google OAuth is implemented at the code level.
+  - **Firestore Security**: User data and inspection tasks are persisted with strict Security Rules ensuring true cross-user isolation (`users/{uid}/...`).
+  - **3-Step User Workflow**: (1) Secure Sign In / OAuth, (2) Create and configure a Private Workspace, (3) Train/Export Edge Models.
+- **Mac vs. Snapdragon Inference**: The current local Streamlit demo runs ONNX on Mac CPU. The 5.8ms NPU claim is strictly based on our isolated, verified Qualcomm AI Hub deployments.
+- **AutoML is an MVP**: The current AutoML abstraction uses a highly constrained, rigid configuration (YOLOv8-N, 640x640, 5 epochs). It is an MVP, not an arbitrary hyperparameter search engine.
