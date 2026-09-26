@@ -175,7 +175,7 @@ def render_step_2():
             if not candidates:
                 st.info("No compatible datasets found.")
             else:
-                for c in candidates:
+                for idx, c in enumerate(candidates):
                     color = "var(--ep-success)" if c['status'] == 'approved' else "var(--ep-warning)" if c['status'] == 'review_required' else "var(--ep-danger)"
                     st.markdown(f"""
                     <div style="border: 1px solid var(--ep-border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
@@ -186,11 +186,54 @@ def render_step_2():
                             <strong>Classes:</strong> {c['classes'] or 'Unknown'}<br/>
                             <strong>License:</strong> {c['license']}
                         </div>
-                        <div style="display: inline-block; padding: 0.25rem 0.5rem; background: {color}; color: white; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                        <div style="display: inline-block; padding: 0.25rem 0.5rem; background: {color}; color: white; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 1rem;">
                             Status: {c['status'].replace('_', ' ').title()}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    if c['status'] not in ['incompatible', 'license_unknown']:
+                        if st.button("Select Dataset", key=f"select_{idx}"):
+                            st.session_state['selected_candidate'] = c
+                            st.rerun()
+
+        candidate = st.session_state.get('selected_candidate')
+        if candidate:
+            st.markdown("### Review Dataset")
+            if candidate['status'] == 'review_required':
+                st.warning("This dataset requires license review before commercial use.")
+                confirmed = st.checkbox("I understand that this dataset requires license review before commercial use.")
+                candidate['user_confirmed'] = confirmed
+            else:
+                confirmed = True
+
+            if st.button("Import Dataset", disabled=not confirmed, type="primary"):
+                from app.core.dataset_importer import DatasetImporter
+                from app.core.dataset_normalizer import DatasetNormalizer
+
+                with st.spinner("Importing and normalizing..."):
+                    importer = DatasetImporter(task_example, use_mock=True) # use mock for safety in MVP
+                    source_dir = importer.import_dataset(candidate)
+
+                    normalizer = DatasetNormalizer(task_example)
+                    res = normalizer.normalize()
+
+                    if res.get('is_valid'):
+                        get_task_manager().update_task(task_example, {
+                            "foundation_dataset": candidate['name'],
+                            "foundation_source": candidate['source'],
+                            "foundation_license": candidate['license'],
+                            "dataset_path": normalizer.normalized_dir,
+                            "dataset_validation_status": True
+                        })
+                        st.success("Foundation dataset ready for EdgePilot.")
+                        st.session_state['run_discovery'] = False
+                        del st.session_state['selected_candidate']
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error(f"Normalization failed: {res.get('errors')}")
+
         return
 
     if task_example in ['steel', 'pcb']:
