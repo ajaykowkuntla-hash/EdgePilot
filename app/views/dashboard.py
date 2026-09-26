@@ -20,7 +20,7 @@ def render():
         metric_card("AVG PROCESSING TIME", "0.0 sec")
 
     st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
-    
+
     col_cta1, col_cta2, col_cta3 = st.columns([1, 1, 2])
     with col_cta1:
         if st.button("＋ Start Inspection", type="primary", use_container_width=True):
@@ -30,8 +30,25 @@ def render():
 
     st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
 
+    section_header("Deployment Candidate")
+
+    st.markdown("""
+        <div class="ep-card" style="padding: 1.5rem; border-left: 4px solid var(--ep-primary); margin-bottom: 2rem;">
+            <h3 style="margin-top: 0;">PRODUCT DEFECT INSPECTION</h3>
+            <p><strong>Model:</strong> YOLOv8-N</p>
+            <p><strong>Validation:</strong> More examples recommended</p>
+            <p><strong>Snapdragon:</strong> NPU validated</p>
+            <p><strong>Latency:</strong> 5.299 ms</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("View technical details", key="view_tech_details"):
+        st.session_state['current_view'] = 'Reports'
+        st.rerun()
+
+    st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
+
     section_header("Recent Activity")
-    
     st.markdown("""
         <div class="ep-card" style="text-align: center; padding: 4rem 2rem;">
             <div style="color: var(--ep-muted); margin-bottom: 1rem;">

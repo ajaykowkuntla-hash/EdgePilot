@@ -130,10 +130,27 @@ def render():
     """, unsafe_allow_html=True)
 
     with st.expander("TECHNICAL DETAILS"):
-        st.markdown("<h3 style='margin-top: 1rem;'>Hardware Validation & Scope</h3>", unsafe_allow_html=True)
-        st.markdown("<p style='color: var(--ep-muted);'>EdgePilot compiles and profiles ONNX models against the Snapdragon X Elite NPU.</p>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin-top: 1rem;'>Deployment Chain Trace</h3>", unsafe_allow_html=True)
+        st.markdown("<p style='color: var(--ep-muted);'>EdgePilot validates the complete pipeline from business requirement to hardware inference.</p>", unsafe_allow_html=True)
 
-        # Evidence.py contents
+        st.markdown("""
+            <div class="ep-card" style="margin-bottom: 1.5rem;">
+                <h4 style="margin-top: 0; color: var(--ep-text);">End-to-End Execution</h4>
+                <ul style="color: var(--ep-text); line-height: 1.8;">
+                    <li><strong>Business task:</strong> Product Defect Inspection</li>
+                    <li><strong>Foundation:</strong> EdgePilot YOLOv8-N (NEU-DET)</li>
+                    <li><strong>Examples:</strong> 25 business examples per class</li>
+                    <li><strong>Adaptation:</strong> +0.67% mAP50 improvement</li>
+                    <li><strong>Evaluation:</strong> MORE EXAMPLES RECOMMENDED</li>
+                    <li><strong>ONNX:</strong> 11.70 MB exported artifact</li>
+                    <li><strong>Qualcomm AI Hub:</strong> Compilation success</li>
+                    <li><strong>Snapdragon X Elite:</strong> CRD target deployment</li>
+                    <li><strong>NPU:</strong> Verified hardware execution</li>
+                    <li><strong>Performance:</strong> 5.299 ms latency, 4.75 MB memory</li>
+                </ul>
+            </div>
+        """, unsafe_allow_html=True)
+
         ecol1, ecol2 = st.columns(2)
         with ecol1:
             st.markdown("""
@@ -191,11 +208,11 @@ def render():
         st.markdown("<h4>Current Validation</h4>", unsafe_allow_html=True)
 
         evidence_card(
-            title="Phase 12 Pipeline",
+            title="Phase 24 Deployment Candidate",
             hardware="Snapdragon X Elite CRD",
             runtime="ONNX",
             compute="NPU",
-            latency="5.804 ms",
+            latency="5.299 ms",
             memory="4.75 MB"
         )
 

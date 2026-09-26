@@ -30,3 +30,9 @@ class ModelRegistry:
 
     def get_template(self, template_id):
         return self.registry.get("templates", {}).get(template_id)
+
+    def list_categories(self):
+        return list(self.registry.get("categories", {}).keys())
+
+    def get_category(self, category_id):
+        return self.registry.get("categories", {}).get(category_id)
