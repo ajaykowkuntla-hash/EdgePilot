@@ -91,16 +91,36 @@ def render_step_1():
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("<div style='margin-bottom: 0.5rem; font-weight: 500;'>Templates</div>", unsafe_allow_html=True)
-        if st.button("Steel Surface Inspection", use_container_width=True):
-            st.session_state['task_name'] = "Steel Surface Inspection"
+
+        # Validated foundations
+        if st.button("Product Defect Inspection", use_container_width=True):
+            st.session_state['task_name'] = "Product Defect Inspection"
             st.session_state['task_objective'] = "Identify visible surface defects in steel components."
             st.session_state['selected_task_example'] = 'steel'
+            st.session_state['discovery_required'] = False
             st.rerun()
-        if st.button("PCB Defect Inspection", use_container_width=True):
-            st.session_state['task_name'] = "PCB Defect Inspection"
+        if st.button("Component Inspection", use_container_width=True):
+            st.session_state['task_name'] = "Component Inspection"
             st.session_state['task_objective'] = "Detect manufacturing defects on PCBs."
             st.session_state['selected_task_example'] = 'pcb'
+            st.session_state['discovery_required'] = False
             st.rerun()
+
+        # Discovery required foundations
+        discovery_categories = [
+            ("Packaging Inspection", "packaging_inspection", "Inspect packaging for damages."),
+            ("Food Quality Inspection", "food_quality", "Detect defects in food products."),
+            ("Counting & Presence Detection", "counting_presence", "Count components or detect missing parts."),
+            ("Safety & Compliance", "safety_compliance", "Ensure safety gear is worn and compliance is met.")
+        ]
+
+        for cat_name, cat_id, cat_obj in discovery_categories:
+            if st.button(cat_name, use_container_width=True):
+                st.session_state['task_name'] = cat_name
+                st.session_state['task_objective'] = cat_obj
+                st.session_state['selected_task_example'] = cat_id
+                st.session_state['discovery_required'] = True
+                st.rerun()
 
     with col2:
         st.text_input("Inspection Name", value=st.session_state.get('task_name', "Custom Inspection"), key='task_name')
@@ -116,12 +136,62 @@ def render_step_1():
 
         if 'selected_task_example' not in st.session_state:
             st.session_state['selected_task_example'] = ''
+            st.session_state['discovery_required'] = False
 
 def render_step_2():
     section_header("Provide Data")
     st.write("Upload a ZIP folder containing examples of your products and defects.")
 
     task_example = st.session_state.get('selected_task_example', '')
+    discovery_required = st.session_state.get('discovery_required', False)
+
+    if discovery_required:
+        st.markdown(f"""
+            <div class="ep-card" style="border-left: 4px solid var(--ep-warning);">
+                <div class="ep-card-header">FOUNDATION STATUS</div>
+                <div style="font-size: 1.2rem; font-weight: bold; color: var(--ep-text); margin-bottom: 0.5rem;">No Validated Foundation</div>
+                <div style="color: var(--ep-muted);">EdgePilot doesn't currently have a validated AI foundation for this automation type.</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("Discover compatible AI foundations", type="primary", use_container_width=True):
+            st.session_state['run_discovery'] = True
+            st.rerun()
+
+        if st.session_state.get('run_discovery', False):
+            from app.core.dataset_discovery import DatasetDiscoveryEngine
+
+            with st.spinner("Finding compatible datasets..."):
+                time.sleep(1)
+            with st.spinner("Checking task compatibility..."):
+                time.sleep(1)
+            with st.spinner("Checking available metadata..."):
+                time.sleep(1)
+            with st.spinner("Checking licensing information..."):
+                engine = DatasetDiscoveryEngine(use_mock=True) # default to mock for tests
+                candidates = engine.search_candidates(st.session_state.get('task_name'))
+
+            st.markdown("### Discovered Candidates")
+            if not candidates:
+                st.info("No compatible datasets found.")
+            else:
+                for c in candidates:
+                    color = "var(--ep-success)" if c['status'] == 'approved' else "var(--ep-warning)" if c['status'] == 'review_required' else "var(--ep-danger)"
+                    st.markdown(f"""
+                    <div style="border: 1px solid var(--ep-border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="margin:0 0 0.5rem 0;">{c['name']}</h4>
+                        <div style="font-size: 0.9rem; color: var(--ep-muted); margin-bottom: 0.5rem;">
+                            <strong>Source:</strong> {c['source']}<br/>
+                            <strong>Task:</strong> {c['task_type']}<br/>
+                            <strong>Classes:</strong> {c['classes'] or 'Unknown'}<br/>
+                            <strong>License:</strong> {c['license']}
+                        </div>
+                        <div style="display: inline-block; padding: 0.25rem 0.5rem; background: {color}; color: white; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                            Status: {c['status'].replace('_', ' ').title()}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        return
 
     if task_example in ['steel', 'pcb']:
         st.markdown(f"""
