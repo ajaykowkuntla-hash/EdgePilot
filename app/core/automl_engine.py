@@ -9,7 +9,8 @@ class AutoMLEngine:
             "imgsz": 640,          # Standard EdgePilot optimization target
             "batch": 16,           # Standard batch size
             "optimizer": "auto",   # Let template decide
-            "device": "cpu"        # Fixed to local CPU for Mac demo
+            "device": "cpu",       # Fixed to local CPU for Mac demo
+            "workers": 0           # Avoid dataloader deadlocks on macOS
         }
 
     def validate_dataset(self, dataset_path):

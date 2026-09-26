@@ -1,0 +1,13 @@
+{
+    "phase": 22,
+    "title": "Adaptive Training Experiment",
+    "status": "complete",
+    "artifacts": [
+        "results.json",
+        "retry_5shot.json",
+        "retry_10shot.json",
+        "retry_25shot.json",
+        "README.md",
+        "EXPERIMENT.md"
+    ]
+}

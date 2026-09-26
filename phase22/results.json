@@ -1,0 +1,34 @@
+{
+    "baseline": {
+        "map50": 0.6521
+    },
+    "5_shot": {
+        "map50": 0.6320,
+        "map50_95": 0.310,
+        "precision": 0.743,
+        "recall": 0.515,
+        "delta": -0.0201,
+        "decision": "MORE_DATA_RECOMMENDED"
+    },
+    "10_shot": {
+        "map50": 0.6480,
+        "map50_95": 0.319,
+        "precision": 0.511,
+        "recall": 0.645,
+        "delta": -0.0041,
+        "decision": "MORE_DATA_RECOMMENDED"
+    },
+    "25_shot": {
+        "map50": 0.6588,
+        "map50_95": 0.3226,
+        "precision": 0.6084,
+        "recall": 0.6172,
+        "delta": 0.0067,
+        "decision": "MORE_DATA_RECOMMENDED"
+    },
+    "evaluation": {
+        "held_out_images": 180,
+        "instances": 446,
+        "leakage": false
+    }
+}
