@@ -1,0 +1,4 @@
+train: /Users/ajaykowkuntla/Desktop/New Pro/phase19/dataset_10/train/images
+val: /Users/ajaykowkuntla/Desktop/New Pro/phase19/eval_dataset/images
+nc: 6
+names: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled-in_scale', 'scratches']

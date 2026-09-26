@@ -1,0 +1,53 @@
+{
+    "baseline": {
+        "samples_per_class": 0,
+        "total_samples": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "map50": 0.0,
+        "map50_95": 0.0,
+        "error": "phase19/data_baseline.yaml 'train:' key missing \u274c.\n'train' and 'val' are required in all data YAMLs."
+    },
+    "5_examples_per_class": {
+        "samples_per_class": 5,
+        "total_samples": 30,
+        "precision": 0.3385736540210258,
+        "recall": 0.3511780419166981,
+        "map50": 0.19982604414210034,
+        "map50_95": 0.08768084333214242,
+        "model_size_mb": 5.960855484008789
+    },
+    "10_examples_per_class": {
+        "samples_per_class": 10,
+        "total_samples": 60,
+        "precision": 0.35666245492072873,
+        "recall": 0.4700336416190962,
+        "map50": 0.40743517531341933,
+        "map50_95": 0.17333508510804088,
+        "model_size_mb": 5.960916519165039
+    },
+    "25_examples_per_class": {
+        "samples_per_class": 25,
+        "total_samples": 150,
+        "precision": 0.5302130690836577,
+        "recall": 0.44805578464354934,
+        "map50": 0.49819541723605076,
+        "map50_95": 0.2366856898852907,
+        "model_size_mb": 5.960916519165039
+    },
+    "inference_sample": {
+        "image": "phase19/eval_dataset/images/pitted_surface_277.jpg",
+        "inference_time_ms": 51.87726020812988,
+        "num_detections": 2,
+        "detections": [
+            {
+                "class": "pitted_surface",
+                "confidence": 0.8330640196800232
+            },
+            {
+                "class": "pitted_surface",
+                "confidence": 0.3803896903991699
+            }
+        ]
+    }
+}
