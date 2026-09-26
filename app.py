@@ -63,7 +63,7 @@ from app.views import dashboard, inspection, dataset, model, inference, reports,
 VIEWS = {
     "Dashboard": dashboard.render,
     "Inspections": inspection.render,
-    "Live Inspection": live_inspection.render,
+    "Live Inspection": inference.render,
     "Reports": reports.render,
     "Settings": settings.render,
 

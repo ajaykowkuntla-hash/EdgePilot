@@ -1,0 +1,25 @@
+{
+    "phase": "24",
+    "model_source": "Phase 22 25-shot Adapted Model",
+    "original_model": "runs/detect/runs/phase22_25shot_retry_adapted/weights/best.pt",
+    "onnx_model": "runs/detect/runs/phase22_25shot_retry_adapted/weights/best.onnx",
+    "onnx_size_mb": 11.7,
+    "sha256": "a8fc2710d012dc4d2c57f0003caba53991c8544112e9bb2fa2e7f2ef1a1f6528",
+    "metrics": {
+        "mAP50": 0.6588
+    },
+    "device": "Snapdragon X Elite CRD",
+    "runtime": "ONNX",
+    "precision": "FP16",
+    "compute_unit": "NPU",
+    "latency_ms": 5.299,
+    "peak_memory_mb": 4.75,
+    "compile_job_id": "j5wlrr9zp",
+    "profile_job_id": "j57e88dqp",
+    "status": "success",
+    "limitations": [
+        "Qualcomm AI Hub hosted-device profiling was used; this is not physical Snapdragon PC testing.",
+        "Does not guarantee real-world performance.",
+        "No claims of production deployment, factory validation, energy superiority, or cost superiority."
+    ]
+}

@@ -2,6 +2,7 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 import time
+import os
 
 _model_pt = None
 _model_onnx = None
@@ -12,19 +13,31 @@ def load_model(use_onnx=True):
 
     if use_onnx:
         if _model_onnx is None:
-            try:
-                _model_onnx = YOLO("phase3/custom_model/best.onnx")
-            except Exception as e:
-                print(f"Error loading ONNX model: {e}")
-                return None
+            model_paths = [
+                "runs/detect/runs/phase22_25shot_retry_adapted/weights/best.onnx",
+                "phase3/custom_model/best.onnx"
+            ]
+            for path in model_paths:
+                if os.path.exists(path):
+                    try:
+                        _model_onnx = YOLO(path)
+                        break
+                    except Exception as e:
+                        print(f"Error loading ONNX model from {path}: {e}")
         return _model_onnx
     else:
         if _model_pt is None:
-            try:
-                _model_pt = YOLO("phase3/custom_model/best.pt")
-            except Exception as e:
-                print(f"Error loading PT model: {e}")
-                return None
+            model_paths = [
+                "runs/detect/runs/phase22_25shot_retry_adapted/weights/best.pt",
+                "phase3/custom_model/best.pt"
+            ]
+            for path in model_paths:
+                if os.path.exists(path):
+                    try:
+                        _model_pt = YOLO(path)
+                        break
+                    except Exception as e:
+                        print(f"Error loading PT model from {path}: {e}")
         return _model_pt
 def run_inference_on_frame(img, confidence_threshold=0.5, engine="onnx", model_path=None):
     use_onnx = (engine == "onnx")
@@ -38,7 +51,7 @@ def run_inference_on_frame(img, confidence_threshold=0.5, engine="onnx", model_p
         model = load_model(use_onnx=use_onnx)
 
     if model is None:
-        return {"error": f"Model not found. Please ensure phase3/custom_model/best.{'onnx' if use_onnx else 'pt'} exists."}
+        return {"error": "Model not found. No adapted ONNX/PT artifact is available for inference."}
 
     # Run inference
     start_time = time.time()

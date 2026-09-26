@@ -92,7 +92,7 @@ def render_step_2():
 
 def render_step_3():
     section_header("Provide Examples")
-    st.write("Provide representative examples. EdgePilot will evaluate whether the available examples are sufficient for adaptation.")
+    st.write("Show EdgePilot examples of the defects you want to detect. These examples help adapt the selected inspection workflow to your application.")
 
     uploaded_file = st.file_uploader("Upload Examples (ZIP)", type=["zip"])
     if uploaded_file:
@@ -150,14 +150,19 @@ def render_step_4():
             return
 
         with st.spinner("Adapting model... (This may take several minutes)"):
-            engine = AdaptationEngine(task_id)
-            # Use validated Phase 22 baseline mapping
-            baseline = {"map50": 0.6521}
-            result = engine.adapt_and_evaluate(foundation_yaml, biz_dict, baseline)
-            st.session_state['adaptation_result'] = result
+            try:
+                engine = AdaptationEngine(task_id)
+                # Use validated Phase 22 baseline mapping
+                baseline = {"map50": 0.6521}
+                result = engine.adapt_and_evaluate(foundation_yaml, biz_dict, baseline)
+                st.session_state['adaptation_result'] = result
+                st.session_state['is_adapting'] = False
+                next_step()
+            except Exception as e:
+                st.error(f"Adaptation failed: {e}")
+                st.session_state['is_adapting'] = False
+                return
 
-        st.session_state['is_adapting'] = False
-        next_step()
         st.rerun()
 
 def render_step_5():
@@ -186,7 +191,7 @@ def render_step_5():
         st.markdown('<div class="ep-card" style="border-left: 4px solid var(--ep-success); font-weight: bold; font-size: 1.2rem;">Status: ADAPTATION SUPPORTED</div>', unsafe_allow_html=True)
     elif decision == "MORE_DATA_RECOMMENDED":
         st.markdown('<div class="ep-card" style="border-left: 4px solid var(--ep-warning); font-weight: bold; font-size: 1.2rem;">Status: MORE EXAMPLES RECOMMENDED</div>', unsafe_allow_html=True)
-        st.info("Current validation improvement is below the configured deployment threshold.")
+        st.info("The current experiment shows a measurable improvement, but the improvement is below EdgePilot's validation threshold. More representative examples are recommended before deployment.")
     else:
         st.markdown('<div class="ep-card" style="border-left: 4px solid var(--ep-danger); font-weight: bold; font-size: 1.2rem;">Status: ADAPTATION NOT SUPPORTED</div>', unsafe_allow_html=True)
 
@@ -217,18 +222,33 @@ def render_step_6():
     section_header("Deployment Candidate")
     res = st.session_state.get('adaptation_result', {})
     decision = res.get('decision', 'UNKNOWN')
-
+    
     st.write(f"**Adaptation readiness:** {decision}")
-    st.write("**Snapdragon technical validation:** VALIDATED")
-
-    if decision == "ADAPTATION_SUPPORTED":
-        st.success("Model ready for deployment validation.")
-    elif decision == "MORE_DATA_RECOMMENDED":
+    
+    st.markdown("""
+    <div class="ep-card" style="margin-top: 1rem; margin-bottom: 1rem;">
+        <h4 style="margin-top: 0;">Snapdragon Technical Validation</h4>
+        <p><strong>Model:</strong> YOLOv8-N</p>
+        <p><strong>Runtime:</strong> ONNX</p>
+        <p><strong>Target:</strong> Snapdragon X Elite</p>
+        <p><strong>Compute:</strong> NPU</p>
+        <p><strong>Measured inference latency:</strong> 5.299 ms</p>
+        <p><strong>Peak memory:</strong> 4.75 MB</p>
+        <p style="color: var(--ep-success); font-weight: bold; margin-top: 1rem;">Validation: QUALCOMM AI HUB — VALIDATED</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.caption("This is Qualcomm AI Hub hosted validation on a Snapdragon X Elite target. It is not a measurement from this Mac.")
+    
+    if decision == "MORE_DATA_RECOMMENDED":
         st.info("Provide more representative examples and evaluate again.")
-        st.warning("Snapdragon technical validation is complete, but the model requires more examples to meet the deployment threshold for production readiness.")
-    else:
-        st.error("Provide more representative examples and evaluate again.")
 
-    if st.button("Deploy to Snapdragon Target", disabled=(decision != "ADAPTATION_SUPPORTED")):
-        st.session_state['is_adapting'] = False
-        st.success("Deployment initiated to target hardware.")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Run Inspection", type="primary", use_container_width=True):
+            st.session_state['current_view'] = 'Live Inspection'
+            st.rerun()
+    with col2:
+        if st.button("Start New Inspection", use_container_width=True):
+            reset_wizard()
+            st.rerun()
