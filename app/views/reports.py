@@ -86,6 +86,49 @@ def render():
     </div>
     """, unsafe_allow_html=True)
 
+    section_header("Live Inspection Results")
+    reports = task_manager.list_reports()
+    
+    st.markdown('<div class="ep-card" style="padding: 0; overflow: hidden;">', unsafe_allow_html=True)
+    st.markdown("""
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--ep-border); color: var(--ep-muted); background-color: var(--ep-surface-2);">
+                    <th style="padding: 1rem;">Date</th>
+                    <th style="padding: 1rem;">Task</th>
+                    <th style="padding: 1rem;">Input Type</th>
+                    <th style="padding: 1rem;">Result</th>
+                </tr>
+            </thead>
+            <tbody style="color: var(--ep-text);">
+    """, unsafe_allow_html=True)
+    
+    if reports:
+        for r in reports:
+            st.markdown(f"""
+                <tr style="border-bottom: 1px solid var(--ep-border);">
+                    <td style="padding: 1rem;">{r.get('date_time', 'Unknown')}</td>
+                    <td style="padding: 1rem;">{r.get('task', 'Unknown')}</td>
+                    <td style="padding: 1rem;">{r.get('input_type', 'Unknown')}</td>
+                    <td style="padding: 1rem;">{r.get('result', 'Unknown')}</td>
+                </tr>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <tr>
+                <td colspan="4" style="padding: 1rem; text-align: center; color: var(--ep-muted);">No live inspection reports found.</td>
+            </tr>
+        """, unsafe_allow_html=True)
+        
+    st.markdown("""
+            </tbody>
+        </table>
+        <div style="padding: 1rem; text-align: center; font-size: 0.8rem; color: var(--ep-muted); border-top: 1px solid var(--ep-border); background-color: var(--ep-bg);">
+            Synced from Cloud
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     with st.expander("TECHNICAL DETAILS"):
         st.markdown("<h3 style='margin-top: 1rem;'>Hardware Validation & Scope</h3>", unsafe_allow_html=True)
         st.markdown("<p style='color: var(--ep-muted);'>EdgePilot compiles and profiles ONNX models against the Snapdragon X Elite NPU.</p>", unsafe_allow_html=True)

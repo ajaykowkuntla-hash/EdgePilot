@@ -57,12 +57,13 @@ if not st.session_state['authenticated'] or not st.session_state['user']:
     st.stop()
 
 # Only import protected views after authentication is confirmed
-from app.views import dashboard, inspection, dataset, model, inference, reports, task_detail, settings
+from app.views import dashboard, inspection, dataset, model, inference, reports, task_detail, settings, live_inspection
 
 # Define the navigation structure
 VIEWS = {
     "Dashboard": dashboard.render,
     "Inspections": inspection.render,
+    "Live Inspection": live_inspection.render,
     "Reports": reports.render,
     "Settings": settings.render,
 
@@ -79,7 +80,7 @@ with st.sidebar:
     st.markdown('<div style="color: var(--ep-muted); font-size: 0.8rem; margin-bottom: 2rem;">Business Automation</div>', unsafe_allow_html=True)
 
     st.markdown('<div style="font-size: 0.75rem; font-weight: 600; color: var(--ep-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; margin-top: 1rem;">Main</div>', unsafe_allow_html=True)
-    for view_name in ["Dashboard", "Inspections", "Reports"]:
+    for view_name in ["Dashboard", "Inspections", "Live Inspection", "Reports"]:
         if st.button(view_name, use_container_width=True,
                      type="primary" if st.session_state['current_view'] == view_name else "secondary"):
             set_view(view_name)

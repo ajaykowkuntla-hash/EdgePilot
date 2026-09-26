@@ -26,19 +26,7 @@ def load_model(use_onnx=True):
                 print(f"Error loading PT model: {e}")
                 return None
         return _model_pt
-def run_inference(image_bytes, confidence_threshold=0.5, engine="onnx", model_path=None):
-    """
-    Runs YOLO inference on an uploaded image.
-
-    Args:
-        image_bytes: The raw image bytes from Streamlit file_uploader.
-        confidence_threshold (float): Only return predictions above this confidence.
-        engine (str): "onnx" or "pt".
-        model_path (str, optional): Path to a specific model to use.
-
-    Returns:
-        dict: containing 'annotated_image' (numpy array), 'detections' (list of dicts), and 'inference_time' (ms).
-    """
+def run_inference_on_frame(img, confidence_threshold=0.5, engine="onnx", model_path=None):
     use_onnx = (engine == "onnx")
 
     if model_path:
@@ -51,10 +39,6 @@ def run_inference(image_bytes, confidence_threshold=0.5, engine="onnx", model_pa
 
     if model is None:
         return {"error": f"Model not found. Please ensure phase3/custom_model/best.{'onnx' if use_onnx else 'pt'} exists."}
-
-    # Decode image from bytes
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     # Run inference
     start_time = time.time()
@@ -94,3 +78,13 @@ def run_inference(image_bytes, confidence_threshold=0.5, engine="onnx", model_pa
         "detections": detections,
         "inference_time": inference_time
     }
+
+def run_inference(image_bytes, confidence_threshold=0.5, engine="onnx", model_path=None):
+    """
+    Runs YOLO inference on an uploaded image.
+    """
+    # Decode image from bytes
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    return run_inference_on_frame(img, confidence_threshold, engine, model_path)

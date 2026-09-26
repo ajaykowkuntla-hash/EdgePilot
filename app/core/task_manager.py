@@ -107,3 +107,19 @@ class TaskManager:
                     doc["id"] = doc["_id"]
             return docs
         return []
+
+    def create_report(self, report_id, report_data):
+        if self.uid and self.id_token:
+            reports_path = f"users/{self.uid}/reports"
+            return create_document(self.id_token, reports_path, report_id, report_data)
+        return None
+
+    def list_reports(self):
+        if self.uid and self.id_token:
+            reports_path = f"users/{self.uid}/reports"
+            docs = list_documents(self.id_token, reports_path)
+            for doc in docs:
+                if "_id" in doc:
+                    doc["id"] = doc["_id"]
+            return docs
+        return []
