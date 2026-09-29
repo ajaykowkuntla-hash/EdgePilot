@@ -7,8 +7,8 @@ from app.ui.components import page_header
 def render():
     page_header(
         eyebrow="INSPECTION",
-        title="Live Feed",
-        description="Real-time automated inspection."
+        title="Image & Video Validation",
+        description="Run inference on static images or extract frames from short video clips."
     )
 
     config = st.session_state.get('inspection_config', {
@@ -31,9 +31,30 @@ def render():
                 <div class="ep-card-header" style="margin: 0.5rem 1rem;">CAMERA FEED / UPLOAD</div>
         """, unsafe_allow_html=True)
 
-        uploaded_file = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png'], label_visibility="collapsed")
+        uploaded_file = st.file_uploader("Upload Image or Video", type=['jpg', 'jpeg', 'png', 'mp4', 'avi'], label_visibility="collapsed")
         if uploaded_file is not None:
-            image_bytes = uploaded_file.read()
+            if uploaded_file.name.lower().endswith(('.mp4', '.avi')):
+                import tempfile
+                import cv2
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp:
+                    tmp.write(uploaded_file.read())
+                    tmp_path = tmp.name
+                
+                with st.spinner("Extracting frames..."):
+                    cap = cv2.VideoCapture(tmp_path)
+                    ret, frame = cap.read()
+                    cap.release()
+                    os.unlink(tmp_path)
+                    
+                    if ret:
+                        # Convert to jpg bytes
+                        success, encoded_img = cv2.imencode('.jpg', frame)
+                        if success:
+                            image_bytes = encoded_img.tobytes()
+                    else:
+                        st.error("Failed to extract video frame")
+            else:
+                image_bytes = uploaded_file.read()
 
         if image_bytes:
             with st.spinner("Analyzing..."):

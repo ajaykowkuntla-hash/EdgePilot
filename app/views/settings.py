@@ -59,9 +59,14 @@ def render():
             }
             try:
                 # If document exists, update. Otherwise create.
-                # Since get_document doesn't easily distinguish between "no collection" and "no doc",
-                # we'll just try to create_document first (which will overwrite) or use update.
-                create_document(id_token, collection_path, "preferences", updates)
+                try:
+                    from app.core.firestore import update_document
+                    update_document(id_token, collection_path, "preferences", updates)
+                except Exception as e:
+                    if "entity was not found" in str(e).lower() or "not_found" in str(e).lower() or "not found" in str(e).lower():
+                        create_document(id_token, collection_path, "preferences", updates)
+                    else:
+                        raise e
                 st.session_state['user_preferences'].update(updates)
                 st.success("Settings saved successfully!")
             except Exception as e:

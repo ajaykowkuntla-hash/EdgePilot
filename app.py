@@ -57,15 +57,16 @@ if not st.session_state['authenticated'] or not st.session_state['user']:
     st.stop()
 
 # Only import protected views after authentication is confirmed
-from app.views import dashboard, inspection, dataset, model, inference, reports, task_detail, settings, live_inspection
+from app.views import dashboard, inspection, dataset, model, inference, reports, task_detail, settings, live_inspection, help
 
 # Define the navigation structure
 VIEWS = {
     "Dashboard": dashboard.render,
     "Inspections": inspection.render,
-    "Live Inspection": inference.render,
+    "Image & Video Validation": inference.render,
     "Reports": reports.render,
     "Settings": settings.render,
+    "Help": help.render,
 
     # Internal mappings
     "Task Detail": task_detail.render,
@@ -80,21 +81,18 @@ with st.sidebar:
     st.markdown('<div style="color: var(--ep-muted); font-size: 0.8rem; margin-bottom: 2rem;">Business Automation</div>', unsafe_allow_html=True)
 
     st.markdown('<div style="font-size: 0.75rem; font-weight: 600; color: var(--ep-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; margin-top: 1rem;">Main</div>', unsafe_allow_html=True)
-    for view_name in ["Dashboard", "Inspections", "Live Inspection", "Reports"]:
+    for view_name in ["Dashboard", "Inspections", "Image & Video Validation", "Reports"]:
         if st.button(view_name, use_container_width=True,
                      type="primary" if st.session_state['current_view'] == view_name else "secondary"):
             set_view(view_name)
             st.rerun()
 
     st.markdown('<div style="font-size: 0.75rem; font-weight: 600; color: var(--ep-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; margin-top: 2rem;">System</div>', unsafe_allow_html=True)
-    for view_name in ["Settings"]:
+    for view_name in ["Settings", "Help"]:
         if st.button(view_name, use_container_width=True,
                      type="primary" if st.session_state['current_view'] == view_name else "secondary"):
             set_view(view_name)
             st.rerun()
-
-    if st.button("Help", use_container_width=True, type="secondary"):
-        st.info("Documentation coming soon.")
 
     if st.button("Sign Out", use_container_width=True, type="secondary"):
         st.session_state['authenticated'] = False

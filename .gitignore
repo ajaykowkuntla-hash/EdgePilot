@@ -36,3 +36,11 @@ secrets/
 app/config/tasks.json
 # If we want to allow benchmark metadata but exclude credentials:
 # Make sure we don't commit credentials inside phase0/benchmark.json
+
+*.mp4
+*.zip
+app/config/discovery_cache.json
+run_*.py
+test_*.py
+create_video.py
+phase22/foundation/

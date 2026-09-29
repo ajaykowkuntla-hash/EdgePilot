@@ -16,21 +16,36 @@ def get_task_manager():
     return TaskManager(uid=user["uid"], id_token=user["id_token"])
 
 def reset_wizard():
-    for key in ['wizard_step', 'selected_category', 'selected_task_example', 'business_examples_dir', 'adaptation_result']:
+    for key in ['wizard_step', 'selected_category', 'selected_task_example', 'business_examples_dir', 'adaptation_result', 'is_adapting']:
         if key in st.session_state:
             del st.session_state[key]
+    if 'wizard_step' in st.query_params:
+        del st.query_params['wizard_step']
+    if 'category' in st.query_params:
+        del st.query_params['category']
 
 def next_step():
     st.session_state['wizard_step'] = min(6, st.session_state.get('wizard_step', 1) + 1)
+    st.query_params['wizard_step'] = str(st.session_state['wizard_step'])
 
 def prev_step():
     st.session_state['wizard_step'] = max(1, st.session_state.get('wizard_step', 1) - 1)
+    st.query_params['wizard_step'] = str(st.session_state['wizard_step'])
 
 def render():
     if 'wizard_step' not in st.session_state:
-        st.session_state['wizard_step'] = 1
+        if 'wizard_step' in st.query_params:
+            st.session_state['wizard_step'] = int(st.query_params['wizard_step'])
+            if 'category' in st.query_params:
+                st.session_state['selected_category'] = st.query_params['category']
+        else:
+            st.session_state['wizard_step'] = 1
 
     step = st.session_state['wizard_step']
+    
+    # Store category in query params if it exists
+    if 'selected_category' in st.session_state:
+        st.query_params['category'] = st.session_state['selected_category']
 
     page_header("INSPECTION WORKFLOW", "Create New Inspection", "Automate a repetitive visual task.")
     steps = ["Task", "Foundation", "Examples", "Adapt", "Model Readiness", "Deployment Candidate"]
@@ -92,7 +107,28 @@ def render_step_2():
 
 def render_step_3():
     section_header("Provide Examples")
-    st.write("Show EdgePilot examples of the defects you want to detect. These examples help adapt the selected inspection workflow to your application.")
+    
+    cat_id = st.session_state.get('selected_category')
+    registry = ModelRegistry()
+    cat_info = registry.registry.get("categories", {}).get(cat_id, {})
+    task_name = cat_info.get("name", "")
+    
+    if "Product Defect" in task_name:
+        term = "defects"
+    elif "Component" in task_name:
+        term = "components"
+    elif "Packaging" in task_name:
+        term = "packaging"
+    elif "Food Quality" in task_name:
+        term = "quality"
+    elif "Counting" in task_name:
+        term = "objects/examples"
+    elif "Safety" in task_name:
+        term = "safety"
+    else:
+        term = "items"
+        
+    st.write(f"Show EdgePilot examples of the {term} you want to detect. These examples help adapt the selected inspection workflow to your application.")
 
     uploaded_file = st.file_uploader("Upload Examples (ZIP)", type=["zip"])
     if uploaded_file:
@@ -246,7 +282,7 @@ def render_step_6():
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Run Inspection", type="primary", use_container_width=True):
-            st.session_state['current_view'] = 'Live Inspection'
+            st.session_state['current_view'] = 'Image & Video Validation'
             st.rerun()
     with col2:
         if st.button("Start New Inspection", use_container_width=True):

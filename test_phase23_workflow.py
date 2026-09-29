@@ -45,8 +45,18 @@ def test_uploaded_examples_to_adaptation_input(mock_st):
     mock_file.getbuffer.return_value = b"dummy content"
     mock_st.file_uploader.return_value = mock_file
     
+    import builtins
+    original_open = builtins.open
+    
+    def conditional_open(file, *args, **kwargs):
+        if 'model_registry.json' in str(file):
+            return original_open(file, *args, **kwargs)
+        mock_fd = MagicMock()
+        mock_fd.__enter__.return_value = mock_fd
+        return mock_fd
+    
     with patch('app.views.inspection.zipfile.ZipFile'), \
-         patch('builtins.open'), \
+         patch('builtins.open', side_effect=conditional_open), \
          patch('app.views.inspection.os.makedirs'), \
          patch('app.views.inspection.os.remove'), \
          patch('app.views.inspection.shutil.rmtree'):
